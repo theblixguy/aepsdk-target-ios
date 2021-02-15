@@ -33,9 +33,16 @@ class TargetState {
         }
     }
 
-    private(set) var thirdPartyId: String?
+    private(set) var thirdPartyId: String? {
+        didSet {
+            dataStore.set(key: TargetConstants.DataStoreKeys.THIRD_PARTY_ID, value: tntId)
+        }
+    }
+
     private(set) var clientCode: String?
     private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
+    private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
+    private(set) var notifications = [Notification]()
     private(set) var sessionTimeoutInSeconds: Int
     private var storedSessionId: String
 
@@ -71,6 +78,11 @@ class TargetState {
         self.edgeHost = edgeHost
     }
 
+    /// Updates the client code in memory and in the data store
+    func updateClientCode(_ clientCode: String) {
+        self.clientCode = clientCode
+    }
+
     /// Generates a `Target` shared state with the stored TNT ID and third party id.
     func generateSharedState() -> [String: Any] {
         var eventData = [String: Any]()
@@ -82,6 +94,10 @@ class TargetState {
     /// Combines the prefetched mboxes with the cached mboxes
     func mergePrefetchedMboxJson(mboxesDictionary: [String: [String: Any]]) {
         prefetchedMboxJsonDicts = prefetchedMboxJsonDicts.merging(mboxesDictionary) { _, new in new }
+    }
+
+    func addNotification(notification: Notification) {
+        notifications.append(notification)
     }
 
     /// Verifies if current target session is expired.

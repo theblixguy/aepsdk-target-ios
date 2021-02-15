@@ -14,7 +14,7 @@ import AEPCore
 import AEPServices
 import Foundation
 
-@objc public extension Target {
+public extension Target {
     /// Prefetch multiple Target mboxes simultaneously.
     ///
     /// Executes a prefetch request to your configured Target server with the TargetPrefetchObject list provided
@@ -150,9 +150,13 @@ import Foundation
     ///   - mboxNames:  (required) an array of displayed location names
     ///   - targetParameters: for the displayed location
     static func locationsDisplayed(mboxNames: [String], targetParameters: TargetParameters) {
-        // TODO: need to verify input parameters
-        // TODO: need to convert "targetParameters" to [String:Any] array
+        if mboxNames.isEmpty {
+            Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#locationsdisplayed")
+            return
+        }
+
         let eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+
         let event = Event(name: TargetConstants.EventName.LOCATIONS_DISPLAYED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)
     }
@@ -162,12 +166,16 @@ import Foundation
     /// location before, indicating that the mbox was viewed. This request helps Target record the clicked event for the given location or mbox.
     ///
     /// - Parameters:
-    ///   - name:  NSString value representing the name for location/mbox
+    ///   - mBoxName:  NSString value representing the name for location/mbox
     ///   - targetParameters:  a TargetParameters object containing parameters for the location clicked
-    static func locationClicked(name _: String, targetParameters _: TargetParameters?) {
-        // TODO: need to verify input parameters
-        // TODO: need to convert "targetParameters" to [String:Any] array
-        let eventData = [TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true, TargetConstants.EventDataKeys.MBOX_NAMES: "", TargetConstants.EventDataKeys.MBOX_PARAMETERS: "", TargetConstants.EventDataKeys.ORDER_PARAMETERS: "", TargetConstants.EventDataKeys.PRODUCT_PARAMETERS: "", TargetConstants.EventDataKeys.PROFILE_PARAMETERS: ""] as [String: Any]
+    static func locationClicked(_ mBoxName: String, _ targetParameters: TargetParameters?) {
+        if mBoxName.isEmpty {
+            Log.error(label: LOG_TAG, "Failed to send click notification, Mbox name must not be empty or null. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#locationclicked")
+            return
+        }
+
+        let eventData = [TargetConstants.EventDataKeys.MBOX_NAME: mBoxName, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+
         let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)
     }

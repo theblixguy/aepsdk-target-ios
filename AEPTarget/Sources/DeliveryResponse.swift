@@ -50,7 +50,7 @@ enum TargetResponseConstants {
         // ---- id -----
 
         static let EDGE_HOST = "edgeHost"
-        static let PREFETCH = "prefetch"
+        static let PREFETCH = "execute"
 
         // ---- prefetch -----
         static let MBOXES = "mboxes"

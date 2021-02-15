@@ -17,6 +17,14 @@ class TargetError: Error, CustomStringConvertible {
     static let ERROR_EMPTY_PREFETCH_LIST = "Empty or nil prefetch requests list"
     static let ERROR_INVALID_REQUEST = "Invalid request error"
     static let ERROR_TIMEOUT = "API call timeout"
+    static let ERROR_MBOX_NAMES_NULL_OR_EMPTY = "MboxNames list is either null or empty"
+    static let ERROR_NO_CLIENT_CODE = "Missing client code"
+    static let ERROR_OPTED_OUT = "Privacy status is opted out"
+    static let ERROR_DISPLAY_NOTIFICATION_SEND_FAILED = "Unable to send display notification: "
+    static let ERROR_DISPLAY_NOTIFICATION_NOT_SENT = "No display notifications are available to send"
+    static let ERROR_NO_CACHED_MBOX_FOUND = "No cached mbox found for %s"
+    static let ERROR_DISPLAY_NOTIFICATION_TOKEN_EMPTY = "Unable to create display notification as token is null or empty"
+    static let ERROR_DISPLAY_NOTIFICATION_NULL_FOR_MBOX = "No display notifications are available to send for mbox"
 
     init(message: String) {
         self.message = message
