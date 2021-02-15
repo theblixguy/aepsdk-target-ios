@@ -34,6 +34,8 @@
 		78D5030F2551FCCE00966553 /* AEPTarget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D503052551FCCE00966553 /* AEPTarget.framework */; };
 		78D503162551FCCE00966553 /* AEPTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 78D503082551FCCE00966553 /* AEPTarget.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		924101CF25FFCF5C00DA88D2 /* TargetRequest+Internal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924101CE25FFCF5C00DA88D2 /* TargetRequest+Internal.swift */; };
+		92410292260C008A00DA88D2 /* MockPreviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92410290260C008A00DA88D2 /* MockPreviewManager.swift */; };
+		924102A1260C01CA00DA88D2 /* MockPreviewManagerUIDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9241029F260C01CA00DA88D2 /* MockPreviewManagerUIDelegate.swift */; };
 		925E065C25FAAF1C00489733 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 925E065B25FAAF1C00489733 /* AppDelegate.m */; };
 		925E065F25FAAF1C00489733 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 925E065E25FAAF1C00489733 /* SceneDelegate.m */; };
 		925E066225FAAF1C00489733 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 925E066125FAAF1C00489733 /* ViewController.m */; };
@@ -148,6 +150,8 @@
 		78D5030E2551FCCE00966553 /* AEPTargetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AEPTargetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		78D503152551FCCE00966553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		924101CE25FFCF5C00DA88D2 /* TargetRequest+Internal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TargetRequest+Internal.swift"; sourceTree = "<group>"; };
+		92410290260C008A00DA88D2 /* MockPreviewManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockPreviewManager.swift; sourceTree = "<group>"; };
+		9241029F260C01CA00DA88D2 /* MockPreviewManagerUIDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockPreviewManagerUIDelegate.swift; sourceTree = "<group>"; };
 		925E065825FAAF1C00489733 /* AEPTargetDemoObjCApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AEPTargetDemoObjCApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		925E065A25FAAF1C00489733 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		925E065B25FAAF1C00489733 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -412,6 +416,8 @@
 		BB1DBEAE25D2F5E700DDBA15 /* TestHelpers */ = {
 			isa = PBXGroup;
 			children = (
+				9241029F260C01CA00DA88D2 /* MockPreviewManagerUIDelegate.swift */,
+				92410290260C008A00DA88D2 /* MockPreviewManager.swift */,
 				BB8FF1192602A72B006C80D9 /* EventHub+reset.swift */,
 				BB8FF1152602A72B006C80D9 /* FileManager+clear.swift */,
 				BB8FF1172602A72B006C80D9 /* MockExtension.swift */,
@@ -813,6 +819,7 @@
 				BB8FF11F2602A72C006C80D9 /* TestableNetworkService.swift in Sources */,
 				BB8FF0EE2602A705006C80D9 /* TargetIntegrationTests.swift in Sources */,
 				BB1DBEA125D2F33D00DDBA15 /* TargetTests.swift in Sources */,
+				924102A1260C01CA00DA88D2 /* MockPreviewManagerUIDelegate.swift in Sources */,
 				92BF53E625F362B700403FCD /* TargetPreviewManagerTests.swift in Sources */,
 				BB1DBE9025D22C3D00DDBA15 /* Target+PublicAPITests.swift in Sources */,
 				BB9C86EF255C9C90007AEF8B /* Event+TargetTests.swift in Sources */,
@@ -825,6 +832,7 @@
 				BB8FF11E2602A72C006C80D9 /* FileManager+clear.swift in Sources */,
 				BB8FF1222602A72C006C80D9 /* EventHub+reset.swift in Sources */,
 				BB1CE6B6260A76F1000BDEB8 /* TargetV5MigratorTests.swift in Sources */,
+				92410292260C008A00DA88D2 /* MockPreviewManager.swift in Sources */,
 				BB8FF1202602A72C006C80D9 /* MockExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
