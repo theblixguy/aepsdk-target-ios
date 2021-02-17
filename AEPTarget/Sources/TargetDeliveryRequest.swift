@@ -23,17 +23,17 @@ struct TargetDeliveryRequest: Codable {
     var id: TargetIDs?
     var context: TargetContext
     var experienceCloud: ExperienceCloudInfo?
-    var execute: Prefetch?
-    var notification: [Notification]?
+    var prefetch: Prefetch?
+    var notifications: [Notification]?
     var environmentId: Int64
     var property: Property?
 
-    init(id: TargetIDs? = nil, context: TargetContext, experienceCloud: ExperienceCloudInfo? = nil, prefetch: Prefetch? = nil, notification: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
+    init(id: TargetIDs? = nil, context: TargetContext, experienceCloud: ExperienceCloudInfo? = nil, prefetch: Prefetch? = nil, notifications: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
         self.id = id
         self.context = context
         self.experienceCloud = experienceCloud
-        execute = prefetch
-        self.notification = notification
+        self.prefetch = prefetch
+        self.notifications = notifications
         self.environmentId = environmentId
         self.property = property
     }
@@ -201,7 +201,7 @@ struct Mbox: Codable {
 
 struct Notification: Codable {
     var id: String
-    var timestamp: UInt64
+    var timestamp: Int64
     var type: String
     var mbox: Mbox?
     var tokens: [String]?
@@ -210,7 +210,7 @@ struct Notification: Codable {
     var order: Order?
     var product: Product?
 
-    init(id: String, timestamp: UInt64, type: String, mbox: Mbox? = nil, tokens: [String]? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
+    init(id: String, timestamp: Int64, type: String, mbox: Mbox? = nil, tokens: [String]? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
         self.id = id
         self.timestamp = timestamp
         self.type = type

@@ -14,7 +14,7 @@ import AEPIdentity
 import AEPServices
 import Foundation
 
-enum TargetRequestBuilder {
+enum DeliveryRequestBuilder {
     private static var systemInfoService: SystemInfoService {
         ServiceProvider.shared.systemInfoService
     }
@@ -48,7 +48,7 @@ enum TargetRequestBuilder {
         // TODO: Give preference to property token passed from view prefetch request or configuration, over mbox at_property.
         // TODO: Add property token
 
-        return TargetDeliveryRequest(id: targetIDs, context: context, experienceCloud: experienceCloud, prefetch: prefetch, notification: notifications)
+        return TargetDeliveryRequest(id: targetIDs, context: context, experienceCloud: experienceCloud, prefetch: prefetch, notifications: notifications)
     }
 
     /// Creates the display notification object
@@ -59,7 +59,7 @@ enum TargetRequestBuilder {
     ///  - timestamp: timestamp associated with the event
     ///  - lifecycleContextData: payload for notification
     /// - Returns: Notification object
-    static func getDisplayNotification(mboxName: String, cachedMboxJson: [String: Any]?, parameters: TargetParameters?, timestamp: UInt64, lifecycleContextData: [String: String]?) -> Notification? {
+    static func getDisplayNotification(mboxName: String, cachedMboxJson: [String: Any]?, parameters: TargetParameters?, timestamp: Int64, lifecycleContextData: [String: String]?) -> Notification? {
         let id = UUID().uuidString
 
         // Set parameters: getMboxParameters
@@ -91,6 +91,40 @@ enum TargetRequestBuilder {
         let notification = Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.DISPLAY, mbox: mBox, tokens: tokens, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
 
         return notification
+    }
+
+    static func getClickedNotification(cachedMboxJson: [String: Any?], parameters: TargetParameters?, timestamp: Int64, lifecycleContextData: [String: String]?) -> Notification? {
+        let id = UUID().uuidString
+
+        // Set parameters: getMboxParameters
+        let mBoxparameters: [String: String] = getMboxParameters(mboxParameters: parameters?.parameters, lifecycleContextData: lifecycleContextData)
+
+        guard let mboxName = cachedMboxJson[TargetConstants.TargetJson.Mbox.NAME] as? String else {
+            return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
+        }
+
+        let mBox = Mbox(name: mboxName)
+
+        guard let metrics = cachedMboxJson[TargetConstants.TargetJson.METRICS] as? [Any?] else {
+            return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mBox, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
+        }
+
+        // set token
+        var tokens: [String] = []
+        for metricItem in metrics {
+            guard let metric = metricItem as? [String: Any?], TargetConstants.TargetJson.MetricType.CLICK == metric[TargetConstants.TargetJson.Metric.TYPE] as? String, let token = metric[TargetConstants.TargetJson.Metric.EVENT_TOKEN] as? String, !token.isEmpty else {
+                continue
+            }
+
+            tokens.append(token)
+        }
+
+        if tokens.isEmpty {
+            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_CREATE_FAILED) \(cachedMboxJson.description)")
+            return nil
+        }
+
+        return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, tokens: tokens, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
     }
 
     /// Creates the mbox parameters {@code JSONObject} with the provided data.

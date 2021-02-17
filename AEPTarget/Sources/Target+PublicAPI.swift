@@ -149,13 +149,13 @@ public extension Target {
     /// - Parameters:
     ///   - mboxNames:  (required) an array of displayed location names
     ///   - targetParameters: for the displayed location
-    static func locationsDisplayed(mboxNames: [String], targetParameters: TargetParameters) {
+    static func locationsDisplayed(mboxNames: [String], targetParameters: TargetParameters?) {
         if mboxNames.isEmpty {
             Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#locationsdisplayed")
             return
         }
 
-        let eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+        let eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters ?? TargetParameters()] as [String: Any]
 
         let event = Event(name: TargetConstants.EventName.LOCATIONS_DISPLAYED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)

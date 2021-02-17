@@ -18,13 +18,19 @@ class TargetError: Error, CustomStringConvertible {
     static let ERROR_INVALID_REQUEST = "Invalid request error"
     static let ERROR_TIMEOUT = "API call timeout"
     static let ERROR_MBOX_NAMES_NULL_OR_EMPTY = "MboxNames list is either null or empty"
+    static let ERROR_MBOX_NAME_NULL_OR_EMPTY = "MboxName is either null or empty"
     static let ERROR_NO_CLIENT_CODE = "Missing client code"
     static let ERROR_OPTED_OUT = "Privacy status is opted out"
     static let ERROR_DISPLAY_NOTIFICATION_SEND_FAILED = "Unable to send display notification: "
     static let ERROR_DISPLAY_NOTIFICATION_NOT_SENT = "No display notifications are available to send"
-    static let ERROR_NO_CACHED_MBOX_FOUND = "No cached mbox found for %s"
+    static let ERROR_CLICK_NOTIFICATION_NOT_SENT = "No click notifications are available to send"
+    static let ERROR_NO_CACHED_MBOX_FOUND = "No cached mbox found for"
     static let ERROR_DISPLAY_NOTIFICATION_TOKEN_EMPTY = "Unable to create display notification as token is null or empty"
     static let ERROR_DISPLAY_NOTIFICATION_NULL_FOR_MBOX = "No display notifications are available to send for mbox"
+    static let ERROR_CLICK_NOTIFICATION_SEND_FAILED = "Unable to send click notification:"
+    static let ERROR_NO_CLICK_METRICS = "No click metrics set on mbox:"
+    static let ERROR_NO_CLICK_METRIC_FOUND = "No click metric found on mbox:"
+    static let ERROR_CLICK_NOTIFICATION_CREATE_FAILED = "Failed to create click notification Json"
 
     init(message: String) {
         self.message = message

@@ -28,7 +28,7 @@
 		7885141E255322D9008E6999 /* Event+Target.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7885141D255322D9008E6999 /* Event+Target.swift */; };
 		78D5030F2551FCCE00966553 /* AEPTarget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D503052551FCCE00966553 /* AEPTarget.framework */; };
 		78D503162551FCCE00966553 /* AEPTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 78D503082551FCCE00966553 /* AEPTarget.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		92AE6D0B25D8E31700F46C59 /* TargetRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AE6D0A25D8E31700F46C59 /* TargetRequestBuilder.swift */; };
+		92AE6D0B25D8E31700F46C59 /* DeliveryRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AE6D0A25D8E31700F46C59 /* DeliveryRequestBuilder.swift */; };
 		92C44A7F25DB0D39000175FB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A7E25DB0D39000175FB /* AppDelegate.swift */; };
 		92C44A8125DB0D39000175FB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8025DB0D39000175FB /* SceneDelegate.swift */; };
 		92C44A8325DB0D39000175FB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8225DB0D39000175FB /* ContentView.swift */; };
@@ -113,7 +113,7 @@
 		78D503092551FCCE00966553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		78D5030E2551FCCE00966553 /* AEPTargetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AEPTargetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		78D503152551FCCE00966553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		92AE6D0A25D8E31700F46C59 /* TargetRequestBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetRequestBuilder.swift; sourceTree = "<group>"; };
+		92AE6D0A25D8E31700F46C59 /* DeliveryRequestBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeliveryRequestBuilder.swift; sourceTree = "<group>"; };
 		92C44A7C25DB0D39000175FB /* AEPTargetDemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AEPTargetDemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		92C44A7E25DB0D39000175FB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		92C44A8025DB0D39000175FB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -209,7 +209,7 @@
 				BB9C871E256237F2007AEF8B /* TargetProduct+Internal.swift */,
 				BB47C01125547DAE00EC6FB5 /* TargetRequest.swift */,
 				BB9C8706255EF202007AEF8B /* TargetDeliveryRequest.swift */,
-				92AE6D0A25D8E31700F46C59 /* TargetRequestBuilder.swift */,
+				92AE6D0A25D8E31700F46C59 /* DeliveryRequestBuilder.swift */,
 				BB1E55A02575BC4B006632E4 /* DeliveryResponse.swift */,
 				BB0C91492575F72200F635B8 /* TargetState.swift */,
 				BB0C915A25775F1100F635B8 /* TargetError.swift */,
@@ -593,7 +593,7 @@
 				BB47C00A25547A2E00EC6FB5 /* TargetParameters.swift in Sources */,
 				BB47C00C25547BE800EC6FB5 /* TargetPrefetch.swift in Sources */,
 				BB47C00E25547D6400EC6FB5 /* TargetOrder.swift in Sources */,
-				92AE6D0B25D8E31700F46C59 /* TargetRequestBuilder.swift in Sources */,
+				92AE6D0B25D8E31700F46C59 /* DeliveryRequestBuilder.swift in Sources */,
 				BB0C914A2575F72200F635B8 /* TargetState.swift in Sources */,
 				BB47C0082554771800EC6FB5 /* TargetConstants.swift in Sources */,
 				78851419255322CB008E6999 /* Target+PublicAPI.swift in Sources */,

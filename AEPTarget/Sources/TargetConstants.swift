@@ -81,6 +81,7 @@ enum TargetConstants {
     enum TargetJson {
         static let OPTIONS = "options"
         static let PARAMETERS = "parameters"
+        static let METRICS = "metrics"
 
         enum Notification {
             static let ID = "id"
@@ -103,6 +104,8 @@ enum TargetConstants {
         enum Mbox {
             static let STATE = "state"
             static let MBOX_AT_PROPERTY_KEY = "at_property"
+            static let NAME = "name"
+            static let INDEX = "index"
         }
     }
 

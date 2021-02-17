@@ -16,9 +16,9 @@
 import XCTest
 
 class DeliveryRequestBuilderTests: XCTestCase {
-    func testBuild() {
+    func testBuildForPrefetch() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
-        let request = TargetRequestBuilder.build(
+        let request = DeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
             thirdPartyId: "thirdPartyId_1",
             identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],

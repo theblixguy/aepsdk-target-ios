@@ -33,4 +33,9 @@ extension Event {
     var isLocationDisplayedEvent: Bool {
         return data?[TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED] != nil ? true : false
     }
+
+    /// Returns true if the event is location clicked request event
+    var isLocationClickedEvent: Bool {
+        return data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] != nil ? true : false
+    }
 }
