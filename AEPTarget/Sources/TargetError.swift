@@ -9,20 +9,20 @@
  OF ANY KIND, either express or implied. See the License for the specific language
  governing permissions and limitations under the License.
  */
+
 import Foundation
 
-/// Class for specifying Target product parameters
-@objc(AEPTargetProduct)
-public class TargetProduct: NSObject, Codable {
-    public let productId: String
-    public let categoryId: String?
+class TargetError: Error, CustomStringConvertible {
+    private let message: String
+    static let ERROR_EMPTY_PREFETCH_LIST = "Empty or nil prefetch requests list"
+    static let ERROR_INVALID_REQUEST = "Invalid request error"
+    static let ERROR_TIMEOUT = "API call timeout"
 
-    /// Initialize a `TargetProduct` with a product  id and a productCategoryId.
-    /// - Parameters:
-    ///   - productId: product id
-    ///   - categoryId: product category id
-    public init(productId: String, categoryId: String? = nil) {
-        self.productId = productId
-        self.categoryId = categoryId
+    init(message: String) {
+        self.message = message
+    }
+
+    var description: String {
+        message
     }
 }
