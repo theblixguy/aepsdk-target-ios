@@ -21,7 +21,13 @@ public class Target: NSObject, Extension {
 
     private var DEFAULT_NETWORK_TIMEOUT: TimeInterval = 2.0
 
-    private let targetState: TargetState
+    internal private(set) var targetState: TargetState
+
+//    #if DEBUG
+//        internal let targetState: TargetState
+//    #else
+//        private let targetState: TargetState
+//    #endif
 
     private var networkService: Networking {
         return ServiceProvider.shared.networkService
@@ -118,10 +124,21 @@ public class Target: NSObject, Extension {
 
         sendTargetRequest(event, prefetchRequests: targetPrefetchArray, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
 
-            guard let response = self.updateStateWithDeliveryResponse(event: event, connection: connection) else {
-                // TODO: log
+            guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
+                self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
                 return
             }
+            let response = DeliveryResponse(responseJson: dict)
+
+            if connection.responseCode != 200, let error = response.errorMessage {
+                self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
+            }
+
+            self.targetState.updateSessionTimestamp()
+
+            if let tntId = response.tntId { self.targetState.updateTntId(tntId) }
+            if let edgeHost = response.edgeHost { self.targetState.updateEdgeHost(edgeHost) }
+            self.createSharedState(data: self.targetState.generateSharedState(), event: event)
 
             if let mboxes = response.mboxes {
                 var mboxesDictionary = [String: [String: Any]]()
@@ -387,22 +404,21 @@ public class Target: NSObject, Extension {
 
     /// Converts data from a lifecycle event into its form desired by Target.
     private func getLifecycleDataForTarget(lifecycleData: [String: Any]?) -> [String: String]? {
-        guard var tempLifecycleContextData: [String: Any] = lifecycleData else {
+        guard var tempLifecycleContextData: [String: String] = lifecycleData?[TargetConstants.Lifecycle.Keys.LIFECYCLE_CONTEXT_DATA] as? [String: String] else {
             return nil
         }
+
         var lifecycleContextData: [String: String] = [:]
 
         for (k, v) in TargetConstants.MAP_TO_CONTEXT_DATA_KEYS {
-            if let value = tempLifecycleContextData[k] as? String, !value.isEmpty {
+            if let value = tempLifecycleContextData[k], !value.isEmpty {
                 lifecycleContextData[v] = value
                 tempLifecycleContextData.removeValue(forKey: k)
             }
         }
 
         for (k1, v1) in tempLifecycleContextData {
-            if let v1Value = v1 as? String {
-                lifecycleContextData.updateValue(v1Value, forKey: k1)
-            }
+            lifecycleContextData.updateValue(v1, forKey: k1)
         }
 
         return lifecycleContextData
@@ -421,8 +437,7 @@ public class Target: NSObject, Extension {
         let tntId = targetState.tntId
         let thirdPartyId = targetState.thirdPartyId
         let environmentId: Int64 = configData[TargetConstants.Configuration.SharedState.Keys.TARGET_ENVIRONMENT_ID] as? Int64 ?? 0
-        let tempLifecycleContextData: [String: String]? = lifecycleData?[TargetConstants.Lifecycle.Keys.LIFECYCLE_CONTEXT_DATA] as? [String: String] ?? nil
-        let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: tempLifecycleContextData)
+        let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleData)
         let propToken = propertyToken != nil ? propertyToken : (configData[TargetConstants.Configuration.SharedState.Keys.TARGET_PROPERTY_TOKEN] as? String ?? "")
 
         guard let requestJson = DeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propToken)?.toJSON() else {

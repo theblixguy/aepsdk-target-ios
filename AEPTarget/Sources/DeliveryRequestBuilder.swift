@@ -63,7 +63,7 @@ enum DeliveryRequestBuilder {
         let id = UUID().uuidString
 
         // Set parameters: getMboxParameters
-        let mBoxparameters: [String: String] = getMboxParameters(mboxParameters: parameters?.parameters, lifecycleContextData: lifecycleContextData)
+        let mBoxParameters: [String: String] = getMboxParameters(mboxParameters: parameters?.parameters, lifecycleContextData: lifecycleContextData)
 
         // Set mBox
         guard let mboxState = cachedMboxJson?[TargetConstants.TargetJson.Mbox.STATE] as? String, !mboxState.isEmpty else {
@@ -88,7 +88,7 @@ enum DeliveryRequestBuilder {
             return nil
         }
 
-        let notification = Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.DISPLAY, mbox: mBox, tokens: tokens, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
+        let notification = Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.DISPLAY, mbox: mBox, tokens: tokens, parameters: mBoxParameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
 
         return notification
     }
@@ -124,10 +124,10 @@ enum DeliveryRequestBuilder {
             return nil
         }
 
-        return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, tokens: tokens, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
+        return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mBox, tokens: tokens, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
     }
 
-    /// Creates the mbox parameters {@code JSONObject} with the provided data.
+    /// Creates the mbox parameters with the provided lifecycle data.
     /// - Parameters:
     ///     - mboxParameters: the mbox parameters provided by the user
     ///     - lifecycleContextData: Lifecycle context  data
@@ -135,17 +135,8 @@ enum DeliveryRequestBuilder {
     private static func getMboxParameters(mboxParameters: [String: String]?, lifecycleContextData: [String: Any]?) -> [String: String] {
         var mBoxParametersCopy: [String: String] = mboxParameters ?? [:]
 
-        if mBoxParametersCopy[TargetConstants.TargetJson.Mbox.MBOX_AT_PROPERTY_KEY] == nil {
-            mBoxParametersCopy.removeValue(forKey: TargetConstants.TargetJson.Mbox.MBOX_AT_PROPERTY_KEY)
-        }
-
-        if let lifecycleDataCopy = lifecycleContextData {
-            for (k, v) in lifecycleDataCopy {
-                if let value = v as? String {
-                    mBoxParametersCopy.updateValue(value, forKey: k)
-                }
-            }
-        }
+        let l = lifecycleContextData as? [String: String]
+        mBoxParametersCopy = merge(newDictionary: l, to: mBoxParametersCopy) ?? [:]
 
         mBoxParametersCopy.removeValue(forKey: TargetConstants.OLD_API_COMPAT_PARAM)
 

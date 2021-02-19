@@ -91,22 +91,25 @@ class TargetPublicAPITests: XCTestCase {
     }
 
     func testLocationDisplayed() throws {
-        let expectation = XCTestExpectation(description: "locationDisplayed should dispatch an event")
-        expectation.assertForOverFulfill = true
-        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { _ in
-//            guard let eventData = event.data, let prefetchArray = TargetPrefetch.from(dictionaries: eventData["prefetch"] as? [[String: Any]]),
-//                  let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
-//            else {
-//                return
-//            }
-//            XCTAssertEqual(2, prefetchArray.count)
-//            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_1"))
-//            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_2"))
-//            XCTAssertEqual("Smith", parameters.profileParameters?["name"])
-            expectation.fulfill()
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
+            guard let eventData = event.data, let prefetchArray = TargetPrefetch.from(dictionaries: eventData["prefetch"] as? [[String: Any]]),
+                  let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
+            else {
+                return
+            }
+            XCTAssertEqual(2, prefetchArray.count)
+            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_1"))
+            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_2"))
+            XCTAssertEqual("Smith", parameters.profileParameters?["name"])
         }
 
-        Target.locationsDisplayed(mboxNames: ["mBox-1", "mBox-2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["profile_parameter_key": "profile_parameter_value"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
-        wait(for: [expectation], timeout: 1)
+        Target.prefetchContent(
+            prefetchObjectArray: [
+                TargetPrefetch(name: "Drink_1", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
+                TargetPrefetch(name: "Drink_2", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
+            ],
+            targetParameters: TargetParameters(profileParameters: ["name": "Smith"]),
+            completion: nil
+        )
     }
 }

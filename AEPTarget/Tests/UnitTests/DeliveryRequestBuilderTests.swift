@@ -16,7 +16,7 @@
 import XCTest
 
 class DeliveryRequestBuilderTests: XCTestCase {
-    func testBuildForPrefetch() {
+    func testBuild_Prefetch() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
         let request = DeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
@@ -45,9 +45,8 @@ class DeliveryRequestBuilderTests: XCTestCase {
             ],
             targetParameters: TargetParameters(profileParameters: ["name": "Smith"])
         )
-//        print(request?.toJSON())
 
-        if let data = EXPECTED_JSON.data(using: .utf8),
+        if let data = EXPECTED_PREFETCH_JSON.data(using: .utf8),
            let jsonArray = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
            let result = request?.asDictionary()
         {
@@ -63,7 +62,109 @@ class DeliveryRequestBuilderTests: XCTestCase {
         XCTFail()
     }
 
-    private let EXPECTED_JSON = """
+    func testBuild_Notification() {
+        ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
+        let request = DeliveryRequestBuilder.build(
+            tntId: "tnt_id_1",
+            thirdPartyId: "thirdPartyId_1",
+            identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": 9],
+            lifecycleSharedState: [
+                "a.OSVersion": "iOS 14.2",
+                "a.DaysSinceFirstUse": "0",
+                "a.CrashEvent": "CrashEvent",
+                "a.CarrierName": "(null)",
+                "a.Resolution": "828x1792",
+                "a.RunMode": "Application",
+                "a.ignoredSessionLength": "-1605549540",
+                "a.HourOfDay": "11",
+                "a.AppID": "v5ManualTestApp 1.0 (1)",
+                "a.DayOfWeek": "2",
+                "a.DeviceName": "x86_64",
+                "a.LaunchEvent": "LaunchEvent",
+                "a.Launches": "2",
+                "a.DaysSinceLastUse": "0",
+                "a.locale": "en-US",
+            ],
+            targetParameters: TargetParameters(profileParameters: ["name": "Smith"]),
+            notifications: [
+                Notification(id: "id1", timestamp: 12345, type: "display", mbox: Mbox(name: "Drink_1", state: "somestate"), tokens: ["token1"], parameters: nil),
+            ]
+        )
+
+        if let data = EXPECTED_NOTIFICATION_JSON.data(using: .utf8),
+           let jsonArray = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let result = request?.asDictionary()
+        {
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["id"] as! [String: Any]).isEqual(to: result["id"] as! [String: Any]))
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["experienceCloud"] as! [String: Any]).isEqual(to: result["experienceCloud"] as! [String: Any]))
+            var context = result["context"] as! [String: Any]
+            context["timeOffsetInMinutes"] = 0
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["context"] as! [String: Any]).isEqual(to: context))
+
+            let arrayA = NSSet(array: jsonArray["notifications"] as! [[String: Any]])
+            let arrayB = NSSet(array: result["notifications"] as! [[String: Any]])
+            XCTAssertTrue(arrayA.isEqual(to: arrayB as! Set<AnyHashable>))
+
+            return
+        }
+
+        XCTFail()
+    }
+
+    func testGetDisplayNotification_withNoState() {
+        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["mboxes": "mboxes1"], parameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
+
+        XCTAssertNil(notification)
+    }
+
+    func testGetDisplayNotification_withNoTokense() {
+        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["state": "state1"], parameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
+
+        XCTAssertNil(notification)
+    }
+
+    func testGetDisplayNotification() {
+        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: mockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+
+        XCTAssertNotNil(notification)
+        XCTAssertNotNil(notification?.id)
+        XCTAssertTrue(notification?.type == TargetConstants.TargetJson.MetricType.DISPLAY)
+        XCTAssertTrue(notification?.mbox?.name == "Drink_1")
+        XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
+        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
+    }
+
+    func testGetClickedNotification_NoMMboxName() {
+        let notification = DeliveryRequestBuilder.getClickedNotification(cachedMboxJson: mockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+
+        XCTAssertNotNil(notification)
+        XCTAssertNotNil(notification?.id)
+        XCTAssertTrue(notification?.type == TargetConstants.TargetJson.MetricType.CLICK)
+        XCTAssertTrue(notification?.mbox?.name == nil)
+        XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
+        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
+    }
+
+    func testGetClickedNotification() {
+        var tempMockCacheMBoxJson = mockCacheMBoxJson
+        tempMockCacheMBoxJson["name"] = "Drink_1"
+        tempMockCacheMBoxJson["metrics"] = metrics
+        let notification = DeliveryRequestBuilder.getClickedNotification(cachedMboxJson: tempMockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+
+        XCTAssertNotNil(notification)
+        XCTAssertNotNil(notification?.id)
+        XCTAssertTrue(notification?.mbox?.name == "Drink_1")
+        XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
+        XCTAssertTrue(notification?.tokens?.first == "token1")
+        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
+    }
+
+    private var mockCacheMBoxJson = ["state": "state1", "options": [["eventToken": "sometoken"]]] as [String: Any]
+    private var mockTargetParams = TargetParameters(parameters: ["p": "v", "__oldTargetSdkApiCompatParam__": "removeit"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1"))
+    private var mockLifecycleContextData = ["a.OSVersion": "iOS 14.2"]
+    private var metrics = [["type": "click", "eventToken": "token1"]]
+
+    private let EXPECTED_PREFETCH_JSON = """
     {
       "id": {
         "tntId": "tnt_id_1",
@@ -154,6 +255,58 @@ class DeliveryRequestBuilderTests: XCTestCase {
           }
         ]
       }
+    }
+    """
+
+    private let EXPECTED_NOTIFICATION_JSON = """
+    {
+      "id": {
+        "tntId": "tnt_id_1",
+        "marketingCloudVisitorId": "mid_xxxx",
+        "thirdPartyId": "thirdPartyId_1"
+      },
+      "experienceCloud": {
+        "analytics": {
+          "logging": "client_side"
+        },
+        "audienceManager": {
+          "blob": "blob_xxx",
+          "locationHint": 9
+        }
+      },
+      "context": {
+        "userAgent": "Mozilla/5.0 (iPhone; CPU OS 14_0; en_US)",
+        "mobilePlatform": {
+          "deviceName": "My iPhone",
+          "deviceType": "phone",
+          "platformType": "ios"
+        },
+        "screen": {
+          "colorDepth": 32,
+          "width": 1125,
+          "height": 2436,
+          "orientation": "portrait"
+        },
+        "channel": "mobile",
+        "application": {
+          "id": "com.adobe.marketing.mobile.testing",
+          "name": "test_app",
+          "version": "1.2"
+        },
+        "timeOffsetInMinutes": 0
+      },
+      "notifications": [
+          {
+             "tokens": ["token1"],
+             "id": "id1",
+             "timestamp": 12345,
+             "mbox": {
+                "name": "Drink_1",
+                "state": "somestate"
+             },
+             "type": "display"
+          }
+       ]
     }
     """
 }

@@ -51,4 +51,16 @@ class TargetEventTests: XCTestCase {
         XCTAssertEqual("20", parameters.profileParameters?["age"])
         XCTAssertEqual("order_1", parameters.order?.orderId)
     }
+
+    func testIsLocationDisplayedEvent() throws {
+        let eventData = [TargetConstants.EventDataKeys.TARGET_PARAMETERS: nil, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any?]
+        let event = Event(name: TargetConstants.EventName.LOCATIONS_DISPLAYED, type: EventType.target, source: EventSource.requestContent, data: eventData as [String: Any])
+        XCTAssertTrue(event.isLocationDisplayedEvent)
+    }
+
+    func testIsLocationClickedEvent() throws {
+        let eventData = [TargetConstants.EventDataKeys.TARGET_PARAMETERS: nil, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true] as [String: Any?]
+        let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData as [String: Any])
+        XCTAssertTrue(event.isLocationClickedEvent)
+    }
 }

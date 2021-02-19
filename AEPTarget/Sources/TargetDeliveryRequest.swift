@@ -189,13 +189,14 @@ struct Mbox: Codable {
     var order: Order?
     var product: Product?
 
-    init(name: String? = nil, index: Int? = nil, state: String? = nil, parameters _: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
+    init(name: String? = nil, index: Int? = nil, state: String? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
         self.name = name
         self.index = index
         self.state = state
         self.profileParameters = profileParameters
         self.order = order
         self.product = product
+        self.parameters = parameters
     }
 }
 
