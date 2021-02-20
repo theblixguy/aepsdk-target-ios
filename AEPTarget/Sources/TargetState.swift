@@ -33,12 +33,7 @@ class TargetState {
         }
     }
 
-    private(set) var thirdPartyId: String? {
-        didSet {
-            dataStore.set(key: TargetConstants.DataStoreKeys.THIRD_PARTY_ID, value: tntId)
-        }
-    }
-
+    private(set) var thirdPartyId: String?
     private(set) var clientCode: String?
     private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
     private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
