@@ -23,12 +23,6 @@ public class Target: NSObject, Extension {
 
     internal private(set) var targetState: TargetState
 
-//    #if DEBUG
-//        internal let targetState: TargetState
-//    #else
-//        private let targetState: TargetState
-//    #endif
-
     private var networkService: Networking {
         return ServiceProvider.shared.networkService
     }

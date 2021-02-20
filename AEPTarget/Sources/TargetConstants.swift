@@ -22,7 +22,6 @@ enum TargetConstants {
     static let API_URL_HOST_BASE = "%@.tt.omtrdc.net"
     static let HEADER_CONTENT_TYPE = "Content-Type"
     static let HEADER_CONTENT_TYPE_JSON = "application/json"
-    static let OLD_API_COMPAT_PARAM = "__oldTargetSdkApiCompatParam__"
 
     static let MAP_TO_CONTEXT_DATA_KEYS: [String: String] = [
         Identity.SharedState.Keys.ADVERTISING_IDENTIFIER: ContextDataKeys.ADVERTISING_IDENTIFIER,

@@ -138,8 +138,6 @@ enum DeliveryRequestBuilder {
         let l = lifecycleContextData as? [String: String]
         mBoxParametersCopy = merge(newDictionary: l, to: mBoxParametersCopy) ?? [:]
 
-        mBoxParametersCopy.removeValue(forKey: TargetConstants.OLD_API_COMPAT_PARAM)
-
         return mBoxParametersCopy
     }
 
