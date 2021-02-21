@@ -32,8 +32,15 @@ struct DeliveryResponse {
         responseJson[TargetResponseConstants.JSONKeys.EDGE_HOST] as? String
     }
 
-    var mboxes: [[String: Any]]? {
+    var prefetchMboxes: [[String: Any]]? {
         if let prefetch = responseJson[TargetResponseConstants.JSONKeys.PREFETCH] as? [String: Any], let mboxes = prefetch[TargetResponseConstants.JSONKeys.MBOXES] as? [[String: Any]] {
+            return mboxes
+        }
+        return nil
+    }
+
+    var executeMboxes: [[String: Any]]? {
+        if let execute = responseJson[TargetResponseConstants.JSONKeys.EXECUTE] as? [String: Any], let mboxes = execute[TargetResponseConstants.JSONKeys.MBOXES] as? [[String: Any]] {
             return mboxes
         }
         return nil
@@ -59,5 +66,9 @@ enum TargetResponseConstants {
         // ---- prefetch - mboxes - mbox -----
         static let MBOX_NAME = "name"
         // ---- prefetch - mboxes - mbox -----
+
+        // ---- execute - mboxes - mbox -----
+        static let EXECUTE = "execute"
+        // ---- execute - mboxes - mbox -----
     }
 }

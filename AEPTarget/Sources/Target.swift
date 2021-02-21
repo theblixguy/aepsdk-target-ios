@@ -100,6 +100,11 @@ public class Target: NSObject, Extension {
             return
         }
 
+        if event.isLoadRequest {
+            loadRequest(event)
+            return
+        }
+
         if event.isLocationsDisplayedEvent {
             displayedLocations(event)
             return
@@ -174,7 +179,7 @@ public class Target: NSObject, Extension {
             if let edgeHost = response.edgeHost { self.targetState.updateEdgeHost(edgeHost) }
             self.createSharedState(data: self.targetState.generateSharedState(), event: event)
 
-            if let mboxes = response.mboxes {
+            if let mboxes = response.prefetchMboxes {
                 var mboxesDictionary = [String: [String: Any]]()
                 for mbox in mboxes {
                     if let name = mbox[TargetResponseConstants.JSONKeys.MBOX_NAME] as? String { mboxesDictionary[name] = mbox }
@@ -190,6 +195,49 @@ public class Target: NSObject, Extension {
 
         if let err = error {
             dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: err)
+        }
+    }
+
+    /// Request multiple Target mboxes in a single network call.
+    /// - Parameter event: an event of type target and  source request content is dispatched by the `EventHub`
+    private func loadRequest(_ event: Event) {
+        guard let targetRequests = event.targetRequests else {
+            Log.debug(label: Target.LOG_TAG, "Unable to process the batch requests, Target Batch Requests are null")
+            return
+        }
+
+        let targetParameters = event.targetParameters
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing shared state - configuration")
+            return
+        }
+
+        let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
+        let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
+
+        // Check whether request can be sent
+        if let error = prepareForTargetRequest(configData: configurationSharedState) {
+            Log.debug(label: Target.LOG_TAG, "\(TargetError.ERROR_BATCH_REQUEST_SEND_FAILED) \(error)")
+            runDefaultCallbacks(batchRequests: targetRequests)
+            return
+        }
+
+        var requestsToSend: [TargetRequest] = targetRequests
+
+        let timestamp = Int64(event.timestamp.timeIntervalSince1970 * 1000.0)
+
+        if !isInPreviewMode() {
+            Log.debug(label: Target.LOG_TAG, "Current cached mboxes : \(targetState.prefetchedMboxJsonDicts.keys.description), size: \(targetState.prefetchedMboxJsonDicts.count)")
+            requestsToSend = processCachedTargetRequest(batchRequests: targetRequests, timeStamp: timestamp)
+        }
+
+        if requestsToSend.isEmpty && targetState.notifications.isEmpty {
+            Log.warning(label: Target.LOG_TAG, "Unable to process the batch requests, requests and notifications are empty")
+            return
+        }
+
+        sendTargetRequest(event, batchRequests: requestsToSend, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
+            self.processTargetRequestResponse(batchRequests: requestsToSend, event: event, connection: connection)
         }
     }
 
@@ -387,6 +435,52 @@ public class Target: NSObject, Extension {
         if let tntId = response.tntId { setTntId(tntId: tntId, configurationSharedState: configurationSharedState) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
         createSharedState(data: targetState.generateSharedState(), event: event)
+    }
+
+    /// Process the network response after the notification network call.
+    /// - Parameters:
+    ///     - batchRequests: `[TargetRequest]` representing the desired mboxes to load
+    ///     - event: event which triggered this network call
+    ///     - connection: `NetworkService.HttpConnection` instance
+    private func processTargetRequestResponse(batchRequests: [TargetRequest], event: Event, connection: HttpConnection) {
+        guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
+            return
+        }
+        let response = DeliveryResponse(responseJson: dict)
+
+        if connection.responseCode != 200, let error = response.errorMessage {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
+        } else {
+            targetState.clearNotifications()
+        }
+        targetState.updateSessionTimestamp()
+        if let tntId = response.tntId { targetState.updateTntId(tntId) }
+        if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
+        createSharedState(data: targetState.generateSharedState(), event: nil)
+
+        var mboxesDictionary = [String: [String: Any]]()
+        if let mboxes = response.executeMboxes {
+            for mbox in mboxes {
+                if let name = mbox[TargetResponseConstants.JSONKeys.MBOX_NAME] as? String { mboxesDictionary[name] = mbox }
+            }
+            if !mboxesDictionary.isEmpty {
+                // save the loaded mboxes from target response to be used later on for notifications
+                targetState.saveLoadedMbox(mboxesDictionary: mboxesDictionary)
+            }
+        } else {
+            runDefaultCallbacks(batchRequests: batchRequests)
+            return
+        }
+
+        for targetRequest in batchRequests {
+            var content = ""
+            if let mboxJson = mboxesDictionary[targetRequest.mBoxName] {
+                content = extractMboxContent(mBoxJson: mboxJson) ?? targetRequest.defaultContent
+                // TODO: Send A4T for each request
+            }
+            dispatchMboxContent(content: content, pairId: nil)
+        }
     }
 
     private func dispatchPrefetchErrorEvent(triggerEvent: Event, errorMessage: String) {
@@ -635,4 +729,82 @@ public class Target: NSObject, Extension {
     private func updateSessionTimeout(configuration: [String: Any]) {
         targetState.sessionTimeoutInSeconds = configuration[TargetConstants.Configuration.SharedState.Keys.TARGET_SESSION_TIMEOUT] as? Int ?? TargetConstants.DEFAULT_SESSION_TIMEOUT
     }
+
+    /// Runs the default callback for each of the request in the list.
+    /// - Parameters:
+    ///     - batchRequests: `[TargetRequests]` to return the default content
+    private func runDefaultCallbacks(batchRequests: [TargetRequest]) {
+        for request in batchRequests {
+            dispatchMboxContent(content: request.defaultContent, pairId: request.responseId)
+        }
+    }
+
+    /// Dispatches the Target Response Content Event.
+    /// - Parameters:
+    ///     - content: the target content
+    ///     - pairId: the pairId of the associated target request content event.
+    private func dispatchMboxContent(content: String, pairId _: String?) {
+        Log.trace(label: Target.LOG_TAG, "dispatchMboxContent - " + TargetError.ERROR_TARGET_EVENT_DISPATCH_MESSAGE)
+        let event = Event(name: TargetConstants.EventName.TARGET_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: content])
+        // TODO: check how to add pair ID
+        dispatch(event: event)
+    }
+
+    /// Checks if the cached mboxs contain the data for each of the `TargetRequest` in the input List.
+    /// If a cached mbox exists, then dispatch the mbox content.
+    ///
+    private func processCachedTargetRequest(batchRequests: [TargetRequest], timeStamp _: Int64) -> [TargetRequest] {
+        var requestsToSend: [TargetRequest] = []
+        for request in batchRequests {
+            guard let cachedMbox: [String: Any] = targetState.prefetchedMboxJsonDicts[request.mBoxName] else {
+                Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - \(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(request.mBoxName)")
+                requestsToSend.append(request)
+                continue
+            }
+            Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - Cached mbox found for \(request.mBoxName) with data \(cachedMbox.description)")
+
+            let content = extractMboxContent(mBoxJson: cachedMbox) ?? request.defaultContent
+            // TODO: check what needs to be the pair id
+            dispatchMboxContent(content: content, pairId: nil)
+        }
+
+        return requestsToSend
+    }
+
+    /// Return Mbox content from mboxJson, if any
+    /// - Parameters:
+    ///     - mBoxJson: `[String: Any]` target response dictionary
+    /// - Returns: `String` mbox content, if any otherwise returns nil
+    private func extractMboxContent(mBoxJson: [String: Any]) -> String? {
+        guard let optionsArray = mBoxJson[TargetConstants.TargetJson.OPTIONS] as? [[String: Any?]?] else {
+            Log.debug(label: Target.LOG_TAG, "extractMboxContent - unable to extract mbox contents, options array is nil")
+            return nil
+        }
+
+        var contentBuilder: String = ""
+
+        for option in optionsArray {
+            guard let content = option?[TargetConstants.TargetJson.Option.CONTENT] else {
+                continue
+            }
+
+            guard let type: String = option?[TargetConstants.TargetJson.Option.TYPE] as? String, !type.isEmpty else {
+                continue
+            }
+
+            if TargetConstants.TargetJson.HTML == type, let contentString = content as? String {
+                contentBuilder.append(contentString)
+            } else if TargetConstants.TargetJson.JSON == type, let contentDict = content as? [String: Any?] {
+                guard let jsonData = try? JSONSerialization.data(withJSONObject: contentDict, options: .prettyPrinted) else {
+                    continue
+                }
+                guard let jsonString = String(data: jsonData, encoding: .utf8) else { continue }
+                contentBuilder.append(jsonString)
+            }
+        }
+
+        return contentBuilder
+    }
+
+    private func getMboxesFromKey(serverResponse _: [String: Any], key _: String) {}
 }

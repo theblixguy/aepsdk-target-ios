@@ -76,10 +76,34 @@ import Foundation
     ///   - requests:  An array of AEPTargetRequestObject objects to retrieve content
     ///   - targetParameters: a TargetParameters object containing parameters for all locations in the requests array
     static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters) {
-        // TODO: need to verify input parameters
+        if requests.isEmpty {
+            Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_REQUEST_MESSAGE)")
+            return
+        }
+
+        var requestsCopy = requests
+
         // TODO: need to convert "requests" to [String:Any] array
-        let eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: requests, TargetConstants.EventDataKeys.LOAD_REQUESTS: targetParameters] as [String: Any]
+
+        for (index, targetRequest) in requests.enumerated() {
+            // TODO: Get the callback for the target request amd check if its an error callback
+
+            if targetRequest.mBoxName.isEmpty {
+                // TODO: Use callback and call with default content
+
+                requestsCopy.remove(at: index)
+                continue
+            }
+
+            targetRequest.responseId = UUID().uuidString
+            // TODO: one time listener
+        }
+
+        let eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: requests, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
         let event = Event(name: TargetConstants.EventName.LOAD_REQUEST, type: EventType.target, source: EventSource.requestContent, data: eventData)
+
+        Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.description)")
+
         MobileCore.dispatch(event: event)
     }
 

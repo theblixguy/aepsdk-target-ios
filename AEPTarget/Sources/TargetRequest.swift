@@ -12,4 +12,15 @@
 import Foundation
 
 @objc(AEPTargetRequestObject)
-public class TargetRequest: NSObject {}
+public class TargetRequest: NSObject, Codable {
+    internal let mBoxName: String
+    internal let defaultContent: String
+    internal var responseId: String?
+    internal let targetParameters: TargetParameters?
+
+    public init(mBoxName: String, defaultContent: String, targetParameters: TargetParameters? = nil) {
+        self.mBoxName = mBoxName
+        self.defaultContent = defaultContent
+        self.targetParameters = targetParameters
+    }
+}

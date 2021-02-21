@@ -81,6 +81,8 @@ enum TargetConstants {
         static let OPTIONS = "options"
         static let PARAMETERS = "parameters"
         static let METRICS = "metrics"
+        static let HTML = "html"
+        static let JSON = "json"
 
         enum Notification {
             static let ID = "id"
@@ -105,6 +107,11 @@ enum TargetConstants {
             static let MBOX_AT_PROPERTY_KEY = "at_property"
             static let NAME = "name"
             static let INDEX = "index"
+        }
+
+        enum Option {
+            static let TYPE = "type"
+            static let CONTENT = "content"
         }
     }
 
@@ -132,6 +139,7 @@ enum TargetConstants {
         static let LOCATIONS_DISPLAYED = "TargetLocationsDisplayed"
         static let LOCATION_CLICKED = "TargetLocationClicked"
         static let IDENTITY_RESPONSE = "TargetResponseIdentity"
+        static let TARGET_RESPONSE = "TargetResponse"
     }
 
     enum EventDataKeys {
@@ -151,6 +159,7 @@ enum TargetConstants {
         static let ORDER_PARAMETERS = "orderparameters"
         static let PRODUCT_PARAMETERS = "productparameters"
         static let PROFILE_PARAMETERS = "profileparams"
+        static let TARGET_CONTENT = "content"
         // shared sate
         static let TNT_ID = "tntid"
         static let PREVIEW_INITIATED = "ispreviewinitiated"

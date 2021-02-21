@@ -26,6 +26,8 @@ class TargetState {
 
     private var storedSessionId: String
 
+    private let LOADED_MBOX_ACCEPTED_KEYS = [TargetConstants.TargetJson.Mbox.NAME, TargetConstants.TargetJson.METRICS]
+
     var sessionId: String {
         if storedSessionId.isEmpty || isSessionExpired() {
             storedSessionId = UUID().uuidString
@@ -130,6 +132,21 @@ class TargetState {
     /// Combines the prefetched mboxes with the cached mboxes
     func mergePrefetchedMboxJson(mboxesDictionary: [String: [String: Any]]) {
         prefetchedMboxJsonDicts = prefetchedMboxJsonDicts.merging(mboxesDictionary) { _, new in new }
+    }
+
+    /// Combines the prefetched mboxes with the cached mboxes
+    func saveLoadedMbox(mboxesDictionary: [String: [String: Any]]) {
+        for mbox in mboxesDictionary {
+            let name = mbox.key
+            var mboxNode = mbox.value
+            if !name.isEmpty, prefetchedMboxJsonDicts[name] == nil {
+                // remove not accepted keys
+                for key in LOADED_MBOX_ACCEPTED_KEYS {
+                    mboxNode.removeValue(forKey: key)
+                }
+                loadedMboxJsonDicts[name] = mboxNode
+            }
+        }
     }
 
     func addNotification(_ notification: Notification) {
