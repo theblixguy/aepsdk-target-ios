@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -21,7 +21,7 @@ public class Target: NSObject, Extension {
 
     private var DEFAULT_NETWORK_TIMEOUT: TimeInterval = 2.0
 
-    internal private(set) var targetState: TargetState
+    private(set) var targetState: TargetState
 
     private var networkService: Networking {
         return ServiceProvider.shared.networkService
@@ -75,13 +75,13 @@ public class Target: NSObject, Extension {
             return
         }
 
-        if event.isLocationDisplayedEvent {
-            locationDisplayed(event)
+        if event.isLocationsDisplayedEvent {
+            displayedLocations(event)
             return
         }
 
         if event.isLocationClickedEvent {
-            locationClicked(event)
+            clickedLocation(event)
             return
         }
 
@@ -97,7 +97,7 @@ public class Target: NSObject, Extension {
         }
 
         guard let targetPrefetchArray = event.prefetchObjectArray else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Empty or null prefetch requests list")
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Empty or nil prefetch requests list")
             return
         }
 
@@ -155,13 +155,13 @@ public class Target: NSObject, Extension {
     /// - Target Extension is not configured.
     /// - Privacy status is opted-out or opt-unknown.
     /// - If the mboxes are either loaded previously or not prefetched.
-    private func locationDisplayed(_ event: Event) {
+    private func displayedLocations(_ event: Event) {
         guard let eventData = event.data as [String: Any]? else {
-            Log.error(label: Target.LOG_TAG, "Unable to handle request content, event data is null.")
+            Log.error(label: Target.LOG_TAG, "Unable to handle request content, event data is nil.")
             return
         }
 
-        guard let mBoxNames: [String] = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String] else {
+        guard let mboxNames: [String] = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String] else {
             Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful \(TargetError.ERROR_MBOX_NAMES_NULL_OR_EMPTY)")
             return
         }
@@ -170,7 +170,7 @@ public class Target: NSObject, Extension {
 
         // Get the configuration shared state
         guard let configuration = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
-            Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, configuration is null")
+            Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, configuration is nil")
             return
         }
 
@@ -183,28 +183,28 @@ public class Target: NSObject, Extension {
         let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
         let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
 
-        for mBoxName: String in mBoxNames {
+        for mboxName in mboxNames {
             // If loadedMbox contains mboxName then do not send analytics request again
-            if mBoxName.isEmpty || targetState.loadedMboxJsonDicts[mBoxName] != nil {
+            if mboxName.isEmpty || targetState.loadedMboxJsonDicts[mboxName] != nil {
                 continue
             }
 
-            guard let mBoxJson: [String: Any] = targetState.prefetchedMboxJsonDicts[mBoxName] else {
-                Log.error(label: Target.LOG_TAG, "\(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(mBoxName) For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-display-notification")
+            guard let mboxJson: [String: Any] = targetState.prefetchedMboxJsonDicts[mboxName] else {
+                Log.error(label: Target.LOG_TAG, "\(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(mboxName).")
                 continue
             }
 
             let timeInMills = Int64(event.timestamp.timeIntervalSince1970 * 1000.0)
 
-            if !addDisplayNotification(mBoxName: mBoxName, mBoxJson: mBoxJson, targetParameters: event.targetParameters, lifecycleData: lifecycleSharedState, timestamp: timeInMills) {
-                Log.debug(label: Target.LOG_TAG, "handleLocationsDisplayed - \(mBoxName) mBox not added for display notification. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-display-notification")
+            if !addDisplayNotification(mboxName: mboxName, mboxJson: mboxJson, targetParameters: event.targetParameters, lifecycleData: lifecycleSharedState, timestamp: timeInMills) {
+                Log.debug(label: Target.LOG_TAG, "handleLocationsDisplayed - \(mboxName) mBox not added for display notification.")
                 continue
             }
 
             // - TODO: dispatchAnalyticsForTargetRequest
 
             if targetState.notifications.isEmpty {
-                Log.debug(label: Target.LOG_TAG, "locationDisplayed - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NOT_SENT)")
+                Log.debug(label: Target.LOG_TAG, "displayedLocations - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NOT_SENT)")
                 return
             }
 
@@ -216,34 +216,39 @@ public class Target: NSObject, Extension {
 
     /// Sends a click notification to Target if click metrics are enabled for the provided location name.
     /// Reads the clicked token from the cached either {@link #prefetchedMbox} or {@link #loadedMbox} to send the click notification. The clicked notification is not sent if,
-    /// The display notification is not sent if,
+    /// The click notification is not sent if,
     /// - Target Extension is not configured.
     /// - Privacy status is opted-out or opt-unknown.
     /// - If the mbox is either not prefetched or loaded previously.
-    /// - If the clicked token is empty or null for the loaded mbox.
-    private func locationClicked(_ event: Event) {
-        guard let eventData = event.data as [String: Any]? else {
-            Log.error(label: Target.LOG_TAG, "Unable to handle request content, event data is null.")
+    /// - If the clicked token is empty or nil for the loaded mbox.
+    private func clickedLocation(_ event: Event) {
+        if isInPreviewMode() {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target location clicked notification can't be sent while in preview mode")
             return
         }
 
-        guard let mBoxName: String = eventData[TargetConstants.EventDataKeys.MBOX_NAME] as? String else {
-            Log.error(label: Target.LOG_TAG, "Location clicked unsuccessful \(TargetError.ERROR_MBOX_NAME_NULL_OR_EMPTY)")
+        guard let eventData = event.data else {
+            Log.warning(label: Target.LOG_TAG, "Unable to handle request content, event data is nil.")
             return
         }
 
-        Log.trace(label: Target.LOG_TAG, "Handling Locations Clicked - event \(event.name) type: \(event.type) source: \(event.source) ")
+        guard let mboxName = eventData[TargetConstants.EventDataKeys.MBOX_NAME] as? String else {
+            Log.warning(label: Target.LOG_TAG, "Location clicked unsuccessful \(TargetError.ERROR_MBOX_NAME_NULL_OR_EMPTY)")
+            return
+        }
+
+        Log.trace(label: Target.LOG_TAG, "Handling Location Clicked - event \(event.name) type: \(event.type) source: \(event.source) ")
 
         // Check if the mbox is already prefetched or loaded.
         // if not, Log and bail out
 
-        guard let mboxJson: [String: Any?] = targetState.prefetchedMboxJsonDicts[mBoxName] ?? targetState.loadedMboxJsonDicts[mBoxName] else {
-            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(mBoxName) For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-click-notification")
+        guard let mboxJson: [String: Any?] = targetState.prefetchedMboxJsonDicts[mboxName] ?? targetState.loadedMboxJsonDicts[mboxName] else {
+            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(mboxName).")
             return
         }
 
         guard let metrics: [[String: Any?]?] = mboxJson[TargetConstants.TargetJson.METRICS] as? [[String: Any?]?] else {
-            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CLICK_METRICS) \(mBoxName) For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-click-notification")
+            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CLICK_METRICS) \(mboxName).")
             return
         }
 
@@ -259,19 +264,19 @@ public class Target: NSObject, Extension {
         }
 
         if !clickMetricFound {
-            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CLICK_METRIC_FOUND) \(mBoxName) For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-click-notification")
+            Log.warning(label: Target.LOG_TAG, "\(TargetError.ERROR_CLICK_NOTIFICATION_SEND_FAILED) \(TargetError.ERROR_NO_CLICK_METRIC_FOUND) \(mboxName).")
             return
         }
 
         // Get the configuration shared state
         guard let configuration = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
-            Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, configuration is null")
+            Log.error(label: Target.LOG_TAG, "Target location clicked notification can't be sent, configuration is nil")
             return
         }
 
         // bail out if the target configuration is not available or if the privacy is opted-out
         if let error = prepareForTargetRequest(configData: configuration) {
-            Log.error(label: Target.LOG_TAG, TargetError.ERROR_DISPLAY_NOTIFICATION_SEND_FAILED + error)
+            Log.error(label: Target.LOG_TAG, TargetError.ERROR_CLICK_NOTIFICATION_NOT_SENT + error)
             return
         }
 
@@ -282,7 +287,7 @@ public class Target: NSObject, Extension {
 
         // create and add click notification to the notification list
         if !addClickedNotification(mBoxJson: mboxJson, targetParameters: event.targetParameters, lifecycleData: lifecycleSharedState, timestamp: timeInMills) {
-            Log.debug(label: Target.LOG_TAG, "handleLocationClicked - \(mBoxName) mBox not added for click notification. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#send-an-mbox-click-notification")
+            Log.debug(label: Target.LOG_TAG, "handleLocationClicked - \(mboxName) mBox not added for click notification.")
             return
         }
 
@@ -298,13 +303,19 @@ public class Target: NSObject, Extension {
     ///     - event: event which triggered this network call
     ///     - connection: `NetworkService.HttpConnection` instance
     private func processNotificationResponse(event: Event, connection: HttpConnection) {
+        if connection.responseCode != 200 {
+            targetState.clearNotifications()
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
+        }
+
         guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
             dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
             return
         }
         let response = DeliveryResponse(responseJson: dict)
 
-        if connection.responseCode != 200, let error = response.errorMessage {
+        if let error = response.errorMessage {
+            targetState.clearNotifications()
             dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
         }
 
@@ -312,7 +323,7 @@ public class Target: NSObject, Extension {
 
         if let tntId = response.tntId { targetState.updateTntId(tntId) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
-        createSharedState(data: targetState.generateSharedState(), event: nil)
+        createSharedState(data: targetState.generateSharedState(), event: event)
     }
 
     private func dispatchPrefetchErrorEvent(triggerEvent: Event, errorMessage: String) {
@@ -342,7 +353,7 @@ public class Target: NSObject, Extension {
     /// - returns: error indicating why the request can't be sent, nil otherwise
     private func prepareForTargetRequest(configData: [String: Any]) -> String? {
         guard let newClientCode = configData[TargetConstants.Configuration.SharedState.Keys.TARGET_CLIENT_CODE] as? String, !newClientCode.isEmpty else {
-            Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, \(TargetError.ERROR_NO_CLIENT_CODE)")
+            Log.warning(label: Target.LOG_TAG, "Target requests failed because, \(TargetError.ERROR_NO_CLIENT_CODE)")
             return TargetError.ERROR_NO_CLIENT_CODE
         }
 
@@ -353,7 +364,7 @@ public class Target: NSObject, Extension {
 
         guard let privacy = configData[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN
         else {
-            Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, \(TargetError.ERROR_OPTED_OUT)")
+            Log.warning(label: Target.LOG_TAG, "Target requests failed because, \(TargetError.ERROR_OPTED_OUT)")
             return TargetError.ERROR_OPTED_OUT
         }
 
@@ -362,20 +373,20 @@ public class Target: NSObject, Extension {
 
     /// Adds the display notification for the given mbox to the {@link #notifications} list
     /// - Parameters:
-    ///     - mBoxName: the displayed mbox name
+    ///     - mboxName: the displayed mbox name
     ///     - mBoxJson: the cached `MBox` object
     ///     - targetParameters: `TargetParameters` object corresponding to the display location
     ///     - lifecycleData: the lifecycle dictionary that should be added as mbox parameters
     ///     - timestamp: timestamp associated with the notification event
     /// - Returns: `Bool` indicating the success of appending the display notification to the notification list
-    private func addDisplayNotification(mBoxName: String, mBoxJson: [String: Any], targetParameters: TargetParameters?, lifecycleData: [String: Any]?, timestamp: Int64) -> Bool {
+    private func addDisplayNotification(mboxName: String, mboxJson: [String: Any], targetParameters: TargetParameters?, lifecycleData: [String: Any]?, timestamp: Int64) -> Bool {
         let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleData)
-        guard let displayNotification = DeliveryRequestBuilder.getDisplayNotification(mboxName: mBoxName, cachedMboxJson: mBoxJson, parameters: targetParameters, timestamp: timestamp, lifecycleContextData: lifecycleContextData) as Notification? else {
-            Log.debug(label: Target.LOG_TAG, "addDisplayNotification - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NULL_FOR_MBOX), \(mBoxName)")
+        guard let displayNotification = DeliveryRequestBuilder.getDisplayNotification(mboxName: mboxName, cachedMboxJson: mboxJson, parameters: targetParameters, timestamp: timestamp, lifecycleContextData: lifecycleContextData) as Notification? else {
+            Log.debug(label: Target.LOG_TAG, "addDisplayNotification - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NULL_FOR_MBOX), \(mboxName)")
             return false
         }
 
-        targetState.addNotification(notification: displayNotification)
+        targetState.addNotification(displayNotification)
         return true
     }
 
@@ -389,16 +400,16 @@ public class Target: NSObject, Extension {
     private func addClickedNotification(mBoxJson: [String: Any?], targetParameters: TargetParameters?, lifecycleData: [String: Any]?, timestamp: Int64) -> Bool {
         let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleData)
         guard let clickNotification = DeliveryRequestBuilder.getClickedNotification(cachedMboxJson: mBoxJson, parameters: targetParameters, timestamp: timestamp, lifecycleContextData: lifecycleContextData) as Notification? else {
-            Log.debug(label: Target.LOG_TAG, "addClickedNotification - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NOT_SENT)")
+            Log.debug(label: Target.LOG_TAG, "addClickedNotification - \(TargetError.ERROR_CLICK_NOTIFICATION_NOT_SENT)")
             return false
         }
-        targetState.addNotification(notification: clickNotification)
+        targetState.addNotification(clickNotification)
         return true
     }
 
     /// Converts data from a lifecycle event into its form desired by Target.
     private func getLifecycleDataForTarget(lifecycleData: [String: Any]?) -> [String: String]? {
-        guard var tempLifecycleContextData: [String: String] = lifecycleData?[TargetConstants.Lifecycle.Keys.LIFECYCLE_CONTEXT_DATA] as? [String: String] else {
+        guard var tempLifecycleContextData = lifecycleData?[TargetConstants.Lifecycle.SharedState.Keys.LIFECYCLE_CONTEXT_DATA] as? [String: String] else {
             return nil
         }
 
@@ -455,25 +466,5 @@ public class Target: NSObject, Extension {
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: DEFAULT_NETWORK_TIMEOUT, readTimeout: DEFAULT_NETWORK_TIMEOUT)
         // stopEvents()
         networkService.connectAsync(networkRequest: request, completionHandler: completionHandler)
-    }
-
-    private func updateStateWithDeliveryResponse(event: Event, connection: HttpConnection) -> DeliveryResponse? {
-        guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
-            return nil
-        }
-        let response = DeliveryResponse(responseJson: dict)
-
-        if connection.responseCode != 200, let error = response.errorMessage {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
-        }
-
-        targetState.updateSessionTimestamp()
-
-        if let tntId = response.tntId { targetState.updateTntId(tntId) }
-        if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
-        createSharedState(data: targetState.generateSharedState(), event: nil)
-
-        return response
     }
 }

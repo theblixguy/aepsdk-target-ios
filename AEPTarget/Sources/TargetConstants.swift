@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,29 +25,29 @@ enum TargetConstants {
 
     static let MAP_TO_CONTEXT_DATA_KEYS: [String: String] = [
         Identity.SharedState.Keys.ADVERTISING_IDENTIFIER: ContextDataKeys.ADVERTISING_IDENTIFIER,
-        Lifecycle.Keys.APP_ID: ContextDataKeys.APPLICATION_IDENTIFIER,
-        Lifecycle.Keys.CARRIER_NAME: ContextDataKeys.CARRIER_NAME,
-        Lifecycle.Keys.CRASH_EVENT: ContextDataKeys.CRASH_EVENT_KEY,
-        Lifecycle.Keys.DAILY_ENGAGED_EVENT: ContextDataKeys.DAILY_ENGAGED_EVENT_KEY,
-        Lifecycle.Keys.DAY_OF_WEEK: ContextDataKeys.DAY_OF_WEEK,
-        Lifecycle.Keys.DAYS_SINCE_FIRST_LAUNCH: ContextDataKeys.DAYS_SINCE_FIRST_LAUNCH,
-        Lifecycle.Keys.DAYS_SINCE_LAST_LAUNCH: ContextDataKeys.DAYS_SINCE_LAST_LAUNCH,
-        Lifecycle.Keys.DAYS_SINCE_LAST_UPGRADE: ContextDataKeys.DAYS_SINCE_LAST_UPGRADE,
-        Lifecycle.Keys.DEVICE_NAME: ContextDataKeys.DEVICE_NAME,
-        Lifecycle.Keys.DEVICE_RESOLUTION: ContextDataKeys.DEVICE_RESOLUTION,
-        Lifecycle.Keys.HOUR_OF_DAY: ContextDataKeys.HOUR_OF_DAY,
-        Lifecycle.Keys.IGNORED_SESSION_LENGTH: ContextDataKeys.IGNORED_SESSION_LENGTH,
-        Lifecycle.Keys.INSTALL_DATE: ContextDataKeys.INSTALL_DATE,
-        Lifecycle.Keys.INSTALL_EVENT: ContextDataKeys.INSTALL_EVENT_KEY,
-        Lifecycle.Keys.LAUNCH_EVENT: ContextDataKeys.LAUNCH_EVENT_KEY,
-        Lifecycle.Keys.LAUNCHES: ContextDataKeys.LAUNCHES,
-        Lifecycle.Keys.LAUNCHES_SINCE_UPGRADE: ContextDataKeys.LAUNCHES_SINCE_UPGRADE,
-        Lifecycle.Keys.LOCALE: ContextDataKeys.LOCALE,
-        Lifecycle.Keys.MONTHLY_ENGAGED_EVENT: ContextDataKeys.MONTHLY_ENGAGED_EVENT_KEY,
-        Lifecycle.Keys.OPERATING_SYSTEM: ContextDataKeys.OPERATING_SYSTEM,
-        Lifecycle.Keys.PREVIOUS_SESSION_LENGTH: ContextDataKeys.PREVIOUS_SESSION_LENGTH,
-        Lifecycle.Keys.RUN_MODE: ContextDataKeys.RUN_MODE,
-        Lifecycle.Keys.UPGRADE_EVENT: ContextDataKeys.UPGRADE_EVENT_KEY,
+        Lifecycle.SharedState.Keys.APP_ID: ContextDataKeys.APPLICATION_IDENTIFIER,
+        Lifecycle.SharedState.Keys.CARRIER_NAME: ContextDataKeys.CARRIER_NAME,
+        Lifecycle.SharedState.Keys.CRASH_EVENT: ContextDataKeys.CRASH_EVENT_KEY,
+        Lifecycle.SharedState.Keys.DAILY_ENGAGED_EVENT: ContextDataKeys.DAILY_ENGAGED_EVENT_KEY,
+        Lifecycle.SharedState.Keys.DAY_OF_WEEK: ContextDataKeys.DAY_OF_WEEK,
+        Lifecycle.SharedState.Keys.DAYS_SINCE_FIRST_LAUNCH: ContextDataKeys.DAYS_SINCE_FIRST_LAUNCH,
+        Lifecycle.SharedState.Keys.DAYS_SINCE_LAST_LAUNCH: ContextDataKeys.DAYS_SINCE_LAST_LAUNCH,
+        Lifecycle.SharedState.Keys.DAYS_SINCE_LAST_UPGRADE: ContextDataKeys.DAYS_SINCE_LAST_UPGRADE,
+        Lifecycle.SharedState.Keys.DEVICE_NAME: ContextDataKeys.DEVICE_NAME,
+        Lifecycle.SharedState.Keys.DEVICE_RESOLUTION: ContextDataKeys.DEVICE_RESOLUTION,
+        Lifecycle.SharedState.Keys.HOUR_OF_DAY: ContextDataKeys.HOUR_OF_DAY,
+        Lifecycle.SharedState.Keys.IGNORED_SESSION_LENGTH: ContextDataKeys.IGNORED_SESSION_LENGTH,
+        Lifecycle.SharedState.Keys.INSTALL_DATE: ContextDataKeys.INSTALL_DATE,
+        Lifecycle.SharedState.Keys.INSTALL_EVENT: ContextDataKeys.INSTALL_EVENT_KEY,
+        Lifecycle.SharedState.Keys.LAUNCH_EVENT: ContextDataKeys.LAUNCH_EVENT_KEY,
+        Lifecycle.SharedState.Keys.LAUNCHES: ContextDataKeys.LAUNCHES,
+        Lifecycle.SharedState.Keys.LAUNCHES_SINCE_UPGRADE: ContextDataKeys.LAUNCHES_SINCE_UPGRADE,
+        Lifecycle.SharedState.Keys.LOCALE: ContextDataKeys.LOCALE,
+        Lifecycle.SharedState.Keys.MONTHLY_ENGAGED_EVENT: ContextDataKeys.MONTHLY_ENGAGED_EVENT_KEY,
+        Lifecycle.SharedState.Keys.OPERATING_SYSTEM: ContextDataKeys.OPERATING_SYSTEM,
+        Lifecycle.SharedState.Keys.PREVIOUS_SESSION_LENGTH: ContextDataKeys.PREVIOUS_SESSION_LENGTH,
+        Lifecycle.SharedState.Keys.RUN_MODE: ContextDataKeys.RUN_MODE,
+        Lifecycle.SharedState.Keys.UPGRADE_EVENT: ContextDataKeys.UPGRADE_EVENT_KEY,
     ]
 
     enum ContextDataKeys {
@@ -193,31 +193,33 @@ enum TargetConstants {
 
     enum Lifecycle {
         static let EXTENSION_NAME = "com.adobe.module.lifecycle"
-        enum Keys {
-            static let APP_ID = "appid"
-            static let CARRIER_NAME = "carriername"
-            static let CRASH_EVENT = "crashevent"
-            static let DAILY_ENGAGED_EVENT = "dailyenguserevent"
-            static let DAY_OF_WEEK = "dayofweek"
-            static let DAYS_SINCE_FIRST_LAUNCH = "dayssincefirstuse"
-            static let DAYS_SINCE_LAST_LAUNCH = "dayssincelastuse"
-            static let DAYS_SINCE_LAST_UPGRADE = "dayssincelastupgrade"
-            static let DEVICE_NAME = "devicename"
-            static let DEVICE_RESOLUTION = "resolution"
-            static let HOUR_OF_DAY = "hourofday"
-            static let IGNORED_SESSION_LENGTH = "ignoredsessionlength"
-            static let INSTALL_DATE = "installdate"
-            static let INSTALL_EVENT = "installevent"
-            static let LAUNCH_EVENT = "launchevent"
-            static let LAUNCHES = "launches"
-            static let LAUNCHES_SINCE_UPGRADE = "launchessinceupgrade"
-            static let LIFECYCLE_CONTEXT_DATA = "lifecyclecontextdata"
-            static let LOCALE = "locale"
-            static let MONTHLY_ENGAGED_EVENT = "monthlyenguserevent"
-            static let OPERATING_SYSTEM = "osversion"
-            static let PREVIOUS_SESSION_LENGTH = "prevsessionlength"
-            static let RUN_MODE = "runmode"
-            static let UPGRADE_EVENT = "upgradeevent"
+        enum SharedState {
+            enum Keys {
+                static let APP_ID = "appid"
+                static let CARRIER_NAME = "carriername"
+                static let CRASH_EVENT = "crashevent"
+                static let DAILY_ENGAGED_EVENT = "dailyenguserevent"
+                static let DAY_OF_WEEK = "dayofweek"
+                static let DAYS_SINCE_FIRST_LAUNCH = "dayssincefirstuse"
+                static let DAYS_SINCE_LAST_LAUNCH = "dayssincelastuse"
+                static let DAYS_SINCE_LAST_UPGRADE = "dayssincelastupgrade"
+                static let DEVICE_NAME = "devicename"
+                static let DEVICE_RESOLUTION = "resolution"
+                static let HOUR_OF_DAY = "hourofday"
+                static let IGNORED_SESSION_LENGTH = "ignoredsessionlength"
+                static let INSTALL_DATE = "installdate"
+                static let INSTALL_EVENT = "installevent"
+                static let LAUNCH_EVENT = "launchevent"
+                static let LAUNCHES = "launches"
+                static let LAUNCHES_SINCE_UPGRADE = "launchessinceupgrade"
+                static let LIFECYCLE_CONTEXT_DATA = "lifecyclecontextdata"
+                static let LOCALE = "locale"
+                static let MONTHLY_ENGAGED_EVENT = "monthlyenguserevent"
+                static let OPERATING_SYSTEM = "osversion"
+                static let PREVIOUS_SESSION_LENGTH = "prevsessionlength"
+                static let RUN_MODE = "runmode"
+                static let UPGRADE_EVENT = "upgradeevent"
+            }
         }
     }
 }

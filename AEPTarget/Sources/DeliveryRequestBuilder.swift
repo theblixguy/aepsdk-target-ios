@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -45,7 +45,6 @@ enum DeliveryRequestBuilder {
         }
 
         // TODO: removeATPropertyFromParameters
-        // TODO: Give preference to property token passed from view prefetch request or configuration, over mbox at_property.
         // TODO: Add property token
 
         return TargetDeliveryRequest(id: targetIDs, context: context, experienceCloud: experienceCloud, prefetch: prefetch, notifications: notifications)
@@ -99,9 +98,7 @@ enum DeliveryRequestBuilder {
         // Set parameters: getMboxParameters
         let mBoxparameters: [String: String] = getMboxParameters(mboxParameters: parameters?.parameters, lifecycleContextData: lifecycleContextData)
 
-        guard let mboxName = cachedMboxJson[TargetConstants.TargetJson.Mbox.NAME] as? String else {
-            return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, parameters: mBoxparameters, profileParameters: parameters?.profileParameters, order: parameters?.order?.toInternalOrder(), product: parameters?.product?.toInternalProduct())
-        }
+        let mboxName = cachedMboxJson[TargetConstants.TargetJson.Mbox.NAME] as? String ?? ""
 
         let mBox = Mbox(name: mboxName)
 
@@ -133,12 +130,12 @@ enum DeliveryRequestBuilder {
     ///     - lifecycleContextData: Lifecycle context  data
     /// - Returns: a dictionary [String: String]
     private static func getMboxParameters(mboxParameters: [String: String]?, lifecycleContextData: [String: Any]?) -> [String: String] {
-        var mBoxParametersCopy: [String: String] = mboxParameters ?? [:]
+        var mboxParametersCopy: [String: String] = mboxParameters ?? [:]
 
         let l = lifecycleContextData as? [String: String]
-        mBoxParametersCopy = merge(newDictionary: l, to: mBoxParametersCopy) ?? [:]
+        mboxParametersCopy = merge(newDictionary: l, to: mboxParametersCopy) ?? [:]
 
-        return mBoxParametersCopy
+        return mboxParametersCopy
     }
 
     private static func generateTargetIDsBy(tntid: String?, thirdPartyId: String?, identitySharedState: [String: Any]?) -> TargetIDs? {

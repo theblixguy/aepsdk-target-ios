@@ -26,7 +26,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
                 "a.OSVersion": "iOS 14.2",
                 "a.DaysSinceFirstUse": "0",
                 "a.CrashEvent": "CrashEvent",
-                "a.CarrierName": "(null)",
+                "a.CarrierName": "(nil)",
                 "a.Resolution": "828x1792",
                 "a.RunMode": "Application",
                 "a.ignoredSessionLength": "-1605549540",
@@ -67,23 +67,23 @@ class DeliveryRequestBuilderTests: XCTestCase {
         let request = DeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
             thirdPartyId: "thirdPartyId_1",
-            identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": 9],
+            identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],
             lifecycleSharedState: [
-                "a.OSVersion": "iOS 14.2",
-                "a.DaysSinceFirstUse": "0",
-                "a.CrashEvent": "CrashEvent",
-                "a.CarrierName": "(null)",
-                "a.Resolution": "828x1792",
-                "a.RunMode": "Application",
+                "osversion": "iOS 14.2",
+                "dayssincefirstuse": "0",
+                "crashevent": "CrashEvent",
+                "carriername": "(nil)",
+                "resolution": "828x1792",
+                "runmode": "Application",
                 "a.ignoredSessionLength": "-1605549540",
-                "a.HourOfDay": "11",
-                "a.AppID": "v5ManualTestApp 1.0 (1)",
-                "a.DayOfWeek": "2",
-                "a.DeviceName": "x86_64",
-                "a.LaunchEvent": "LaunchEvent",
-                "a.Launches": "2",
-                "a.DaysSinceLastUse": "0",
-                "a.locale": "en-US",
+                "hourofday": "11",
+                "appid": "v5ManualTestApp 1.0 (1)",
+                "dayofweek": "2",
+                "devicename": "x86_64",
+                "launchevent": "LaunchEvent",
+                "launches": "2",
+                "dayssincelastuse": "0",
+                "locale": "en-US",
             ],
             targetParameters: TargetParameters(profileParameters: ["name": "Smith"]),
             notifications: [
@@ -129,9 +129,8 @@ class DeliveryRequestBuilderTests: XCTestCase {
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
         XCTAssertTrue(notification?.type == TargetConstants.TargetJson.MetricType.DISPLAY)
-        XCTAssertTrue(notification?.mbox?.name == "Drink_1")
+        XCTAssertTrue(notification?.mbox.name == "Drink_1")
         XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
-        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
     }
 
     func testGetClickedNotification_NoMMboxName() {
@@ -140,9 +139,8 @@ class DeliveryRequestBuilderTests: XCTestCase {
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
         XCTAssertTrue(notification?.type == TargetConstants.TargetJson.MetricType.CLICK)
-        XCTAssertTrue(notification?.mbox?.name == nil)
+        XCTAssertTrue(notification?.mbox.name == "")
         XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
-        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
     }
 
     func testGetClickedNotification() {
@@ -153,10 +151,9 @@ class DeliveryRequestBuilderTests: XCTestCase {
 
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
-        XCTAssertTrue(notification?.mbox?.name == "Drink_1")
+        XCTAssertTrue(notification?.mbox.name == "Drink_1")
         XCTAssertTrue(notification?.parameters?["a.OSVersion"] == "iOS 14.2")
         XCTAssertTrue(notification?.tokens?.first == "token1")
-        XCTAssertTrue(notification?.parameters?["__oldTargetSdkApiCompatParam__"] == nil)
     }
 
     private var mockCacheMBoxJson = ["state": "state1", "options": [["eventToken": "sometoken"]]] as [String: Any]
@@ -208,7 +205,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
               "a.OSVersion": "iOS 14.2",
               "a.DaysSinceFirstUse": "0",
               "a.CrashEvent": "CrashEvent",
-              "a.CarrierName": "(null)",
+              "a.CarrierName": "(nil)",
               "a.Resolution": "828x1792",
               "a.RunMode": "Application",
               "a.ignoredSessionLength": "-1605549540",
@@ -233,7 +230,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
               "a.OSVersion": "iOS 14.2",
               "a.DaysSinceFirstUse": "0",
               "a.CrashEvent": "CrashEvent",
-              "a.CarrierName": "(null)",
+              "a.CarrierName": "(nil)",
               "a.Resolution": "828x1792",
               "a.RunMode": "Application",
               "a.ignoredSessionLength": "-1605549540",
@@ -271,7 +268,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
         },
         "audienceManager": {
           "blob": "blob_xxx",
-          "locationHint": 9
+          "locationHint": "9"
         }
       },
       "context": {

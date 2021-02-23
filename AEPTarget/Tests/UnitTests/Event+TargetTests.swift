@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -55,7 +55,7 @@ class TargetEventTests: XCTestCase {
     func testIsLocationDisplayedEvent() throws {
         let eventData = [TargetConstants.EventDataKeys.TARGET_PARAMETERS: nil, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any?]
         let event = Event(name: TargetConstants.EventName.LOCATIONS_DISPLAYED, type: EventType.target, source: EventSource.requestContent, data: eventData as [String: Any])
-        XCTAssertTrue(event.isLocationDisplayedEvent)
+        XCTAssertTrue(event.isLocationsDisplayedEvent)
     }
 
     func testIsLocationClickedEvent() throws {

@@ -14,7 +14,6 @@ end
 
 target 'AEPTargetDemoApp' do
   pod 'AEPCore'
-  pod 'AEPRulesEngine'
   pod 'AEPIdentity'
   pod 'AEPLifecycle'
   pod 'AEPSignal'

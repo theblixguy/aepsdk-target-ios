@@ -30,12 +30,12 @@ extension Event {
     }
 
     /// Returns true if the event is location display request event
-    var isLocationDisplayedEvent: Bool {
-        return data?[TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED] != nil ? true : false
+    var isLocationsDisplayedEvent: Bool {
+        return data?[TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED] as? Bool ?? false
     }
 
     /// Returns true if the event is location clicked request event
     var isLocationClickedEvent: Bool {
-        return data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] != nil ? true : false
+        return data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] as? Bool ?? false
     }
 }

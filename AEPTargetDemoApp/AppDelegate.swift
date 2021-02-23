@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,6 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         MobileCore.setLogLevel(.trace)
         MobileCore.registerExtensions([Lifecycle.self, Identity.self, Target.self, Signal.self])
+        // https://experience.adobe.com/#/@obumobile5/launch/companies/COe866eac9a46b406fb25e1576ddb40375/properties/PRa0cdd30c31c1444ab6287bdbb5e28a65/overview
         MobileCore.configureWith(appId: "launch-ENc28aaf2fb6934cff830c8d3ddc5465b1-development")
 
         return true

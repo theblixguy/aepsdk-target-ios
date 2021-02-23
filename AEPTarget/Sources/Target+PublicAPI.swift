@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,7 @@ import AEPCore
 import AEPServices
 import Foundation
 
-public extension Target {
+@objc public extension Target {
     /// Prefetch multiple Target mboxes simultaneously.
     ///
     /// Executes a prefetch request to your configured Target server with the TargetPrefetchObject list provided
@@ -31,7 +31,7 @@ public extension Target {
         let completion = completion ?? { _ in }
 
         guard !prefetchObjectArray.isEmpty else {
-            Log.error(label: Target.LOG_TAG, "Failed to prefetch Target request (the provided request list for mboxes is empty or null)")
+            Log.error(label: Target.LOG_TAG, "Failed to prefetch Target request (the provided request list for mboxes is empty or nil)")
             completion(TargetError(message: TargetError.ERROR_EMPTY_PREFETCH_LIST))
             return
         }
@@ -149,9 +149,10 @@ public extension Target {
     /// - Parameters:
     ///   - mboxNames:  (required) an array of displayed location names
     ///   - targetParameters: for the displayed location
-    static func locationsDisplayed(mboxNames: [String], targetParameters: TargetParameters?) {
+    @objc(displayedLocations:withParameters:)
+    static func displayedLocations(mboxNames: [String], targetParameters: TargetParameters?) {
         if mboxNames.isEmpty {
-            Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#locationsdisplayed")
+            Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty.")
             return
         }
 
@@ -166,15 +167,20 @@ public extension Target {
     /// location before, indicating that the mbox was viewed. This request helps Target record the clicked event for the given location or mbox.
     ///
     /// - Parameters:
-    ///   - mBoxName:  NSString value representing the name for location/mbox
+    ///   - mboxName:  NSString value representing the name for location/mbox
     ///   - targetParameters:  a TargetParameters object containing parameters for the location clicked
-    static func locationClicked(_ mBoxName: String, _ targetParameters: TargetParameters?) {
-        if mBoxName.isEmpty {
-            Log.error(label: LOG_TAG, "Failed to send click notification, Mbox name must not be empty or null. For more details refer to https://aep-sdks.gitbook.io/docs/using-mobile-extensions/adobe-target/target-api-reference#locationclicked")
+    @objc(clickedLocation:withParameters:)
+    static func clickedLocation(mboxName: String, targetParameters: TargetParameters?) {
+        if mboxName.isEmpty {
+            Log.error(label: LOG_TAG, "Failed to send click notification, Mbox name must not be empty or nil.")
             return
         }
 
-        let eventData = [TargetConstants.EventDataKeys.MBOX_NAME: mBoxName, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+        var eventData = [TargetConstants.EventDataKeys.MBOX_NAME: mboxName, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true] as [String: Any]
+
+        if let targetParams = targetParameters {
+            eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParams
+        }
 
         let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)

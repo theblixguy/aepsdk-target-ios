@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -181,7 +181,7 @@ struct Prefetch: Codable {
 }
 
 struct Mbox: Codable {
-    var name: String?
+    var name: String
     var index: Int?
     var state: String?
     var parameters: [String: String]?
@@ -189,7 +189,7 @@ struct Mbox: Codable {
     var order: Order?
     var product: Product?
 
-    init(name: String? = nil, index: Int? = nil, state: String? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
+    init(name: String, index: Int? = nil, state: String? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
         self.name = name
         self.index = index
         self.state = state
@@ -204,14 +204,14 @@ struct Notification: Codable {
     var id: String
     var timestamp: Int64
     var type: String
-    var mbox: Mbox?
+    var mbox: Mbox
     var tokens: [String]?
     var parameters: [String: String]?
     var profileParameters: [String: String]?
     var order: Order?
     var product: Product?
 
-    init(id: String, timestamp: Int64, type: String, mbox: Mbox? = nil, tokens: [String]? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
+    init(id: String, timestamp: Int64, type: String, mbox: Mbox, tokens: [String]? = nil, parameters: [String: String]? = nil, profileParameters: [String: String]? = nil, order: Order? = nil, product: Product? = nil) {
         self.id = id
         self.timestamp = timestamp
         self.type = type
