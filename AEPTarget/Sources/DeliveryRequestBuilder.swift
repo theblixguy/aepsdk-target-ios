@@ -30,7 +30,7 @@ enum DeliveryRequestBuilder {
     ///   - environmentId: target environmentId
     ///   - propertyToken: String to be passed for all requests
     /// - Returns: a `DeliveryRequest` object
-    static func build(tntId: String?, thirdPartyId: String?, identitySharedState: [String: Any]?, lifecycleSharedState: [String: Any]?, targetPrefetchArray: [TargetPrefetch]? = nil, targetParameters: TargetParameters? = nil, notifications: [Notification]? = nil, environmentId _: Int64 = 0, propertyToken _: String? = nil) -> TargetDeliveryRequest? {
+    static func build(tntId: String?, thirdPartyId: String?, identitySharedState: [String: Any]?, lifecycleSharedState: [String: Any]?, targetPrefetchArray: [TargetPrefetch]? = nil, targetRequestArray: [TargetRequest]? = nil, targetParameters: TargetParameters? = nil, notifications: [Notification]? = nil, environmentId _: Int64 = 0, propertyToken _: String? = nil) -> TargetDeliveryRequest? {
         let targetIDs = generateTargetIDsBy(tntid: tntId, thirdPartyId: thirdPartyId, identitySharedState: identitySharedState)
         let experienceCloud = generateExperienceCloudInfoBy(identitySharedState: identitySharedState)
         guard let context = generateTargetContext() else {
@@ -38,15 +38,21 @@ enum DeliveryRequestBuilder {
         }
 
         // prefetch
-        var prefetch: Prefetch?
+        var prefetch: Mboxes?
         if let tpArray: [TargetPrefetch] = targetPrefetchArray {
             prefetch = generatePrefetchBy(targetPrefetchArray: tpArray, lifecycleSharedState: lifecycleSharedState, globalParameters: targetParameters) ?? nil
+        }
+
+        // prefetch
+        var execute: Mboxes?
+        if let trArray: [TargetRequest] = targetRequestArray {
+            execute = generateBatchBy(targetRequestArray: trArray, lifecycleSharedState: lifecycleSharedState, globalParameters: targetParameters) ?? nil
         }
 
         // TODO: removeATPropertyFromParameters
         // TODO: Add property token
 
-        return TargetDeliveryRequest(id: targetIDs, context: context, experienceCloud: experienceCloud, prefetch: prefetch, notifications: notifications)
+        return TargetDeliveryRequest(id: targetIDs, context: context, experienceCloud: experienceCloud, prefetch: prefetch, execute: execute, notifications: notifications)
     }
 
     /// Creates the display notification object
@@ -178,7 +184,7 @@ enum DeliveryRequestBuilder {
         return TargetContext(channel: TargetConstants.TargetRequestValue.CHANNEL_MOBILE, userAgent: systemInfoService.getDefaultUserAgent(), mobilePlatform: mobilePlatform, application: application, screen: screen, timeOffsetInMinutes: Date().getUnixTimeInSeconds())
     }
 
-    private static func generatePrefetchBy(targetPrefetchArray: [TargetPrefetch], lifecycleSharedState: [String: Any]?, globalParameters: TargetParameters?) -> Prefetch? {
+    private static func generatePrefetchBy(targetPrefetchArray: [TargetPrefetch], lifecycleSharedState: [String: Any]?, globalParameters: TargetParameters?) -> Mboxes? {
         let lifecycleDataDict = lifecycleSharedState as? [String: String]
 
         var mboxes = [Mbox]()
@@ -192,7 +198,24 @@ enum DeliveryRequestBuilder {
             let mbox = Mbox(name: prefetch.name, index: index, parameters: parameters, profileParameters: profileParameters, order: order, product: product)
             mboxes.append(mbox)
         }
-        return Prefetch(mboxes: mboxes)
+        return Mboxes(mboxes: mboxes)
+    }
+
+    private static func generateBatchBy(targetRequestArray: [TargetRequest], lifecycleSharedState: [String: Any]?, globalParameters: TargetParameters?) -> Mboxes? {
+        let lifecycleDataDict = lifecycleSharedState as? [String: String]
+
+        var mboxes = [Mbox]()
+
+        for (index, request) in targetRequestArray.enumerated() {
+            let parameterWithLifecycleData = merge(newDictionary: lifecycleDataDict, to: request.targetParameters?.parameters)
+            let parameters = merge(newDictionary: globalParameters?.parameters, to: parameterWithLifecycleData)
+            let profileParameters = merge(newDictionary: globalParameters?.profileParameters, to: request.targetParameters?.profileParameters)
+            let order = findFirstAvailableOrder(globalOrder: globalParameters?.order, order: request.targetParameters?.order)
+            let product = findFirstAvailableProduct(product: request.targetParameters?.product, globalProduct: globalParameters?.product)
+            let mbox = Mbox(name: request.name, index: index, parameters: parameters, profileParameters: profileParameters, order: order, product: product)
+            mboxes.append(mbox)
+        }
+        return Mboxes(mboxes: mboxes)
     }
 
     /// Merges the given dictionaries, and only keeps values from the new dictionary for duplicated keys.

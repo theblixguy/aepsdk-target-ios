@@ -15,6 +15,9 @@ import AEPServices
 import Foundation
 
 @objc public extension Target {
+    private static var isResponseListenerRegister: Bool = false
+    private static var responseIdToRequest: [String: TargetRequest] = [:]
+
     /// Prefetch multiple Target mboxes simultaneously.
     ///
     /// Executes a prefetch request to your configured Target server with the TargetPrefetchObject list provided
@@ -75,36 +78,51 @@ import Foundation
     /// - Parameters:
     ///   - requests:  An array of AEPTargetRequestObject objects to retrieve content
     ///   - targetParameters: a TargetParameters object containing parameters for all locations in the requests array
+    @objc(retrieveLocationContent:withParameters:)
     static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters) {
         if requests.isEmpty {
             Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_REQUEST_MESSAGE)")
             return
         }
 
-        var requestsCopy = requests
+        var targetRequestsArray = [[String: Any]]()
+        var tempIdToRequest: [String: TargetRequest] = [:]
 
-        // TODO: need to convert "requests" to [String:Any] array
-
-        for (index, targetRequest) in requests.enumerated() {
-            // TODO: Get the callback for the target request amd check if its an error callback
-
-            if targetRequest.mBoxName.isEmpty {
-                // TODO: Use callback and call with default content
-
-                requestsCopy.remove(at: index)
+        for request in requests {
+            if request.name.isEmpty {
+                // If the callback is present call with default content
+                if let callback = request.contentCallback {
+                    callback(request.defaultContent)
+                }
+                Log.debug(label: Target.LOG_TAG, "TargetRequest removed because mboxName is empty.")
                 continue
             }
 
-            targetRequest.responseId = UUID().uuidString
-            // TODO: one time listener
+            guard let requestObj = request.asDictionary() else {
+                Log.error(label: Target.LOG_TAG, "Failed to convert Target request to [String: Any] dictionary), prefetch => \(request.description)")
+                continue
+            }
+
+            tempIdToRequest[request.responsePairId] = request
+
+            targetRequestsArray.append(requestObj)
         }
 
-        let eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: requests, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+        // Register the response content listener
+        registerResponseContentEvent()
+
+        let eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: targetRequestsArray, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
         let event = Event(name: TargetConstants.EventName.LOAD_REQUEST, type: EventType.target, source: EventSource.requestContent, data: eventData)
+
+        for (k, v) in tempIdToRequest {
+            responseIdToRequest["\(event.id)-\(k)"] = v
+        }
 
         Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.description)")
 
-        MobileCore.dispatch(event: event)
+        MobileCore.dispatch(event: event) { event in
+            Log.debug(label: "Public API RESPONSE", "\(String(describing: event?.responseID))")
+        }
     }
 
     /// Sets the custom visitor ID for Target.
@@ -248,5 +266,35 @@ import Foundation
 
         let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)
+    }
+
+    private static func registerResponseContentEvent() {
+        if !isResponseListenerRegister {
+            MobileCore.registerEventListener(type: EventType.target, source: EventSource.responseContent, listener: handleResponseEvent(_:))
+            isResponseListenerRegister = true
+        }
+    }
+
+    private static func handleResponseEvent(_ event: Event) {
+        guard let id = event.responseID,
+              let responsePairId = event.data?[TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID] as? String
+        else {
+            Log.error(label: LOG_TAG, "Missing response pair id for the target request in the response event")
+            return
+        }
+        let searchId = "\(id)-\(responsePairId)"
+        guard let targetRequest = responseIdToRequest[searchId] else {
+            Log.error(label: LOG_TAG, "Missing target request for the \(searchId)")
+            return
+        }
+        // Remove the target request from the map
+        responseIdToRequest.removeValue(forKey: searchId)
+
+        guard let callback = targetRequest.contentCallback else {
+            Log.warning(label: LOG_TAG, "Missing callback for target request with pair id the \(responsePairId)")
+            return
+        }
+        let content = event.data?[TargetConstants.EventDataKeys.TARGET_CONTENT] as? String ?? targetRequest.defaultContent
+        callback(content)
     }
 }

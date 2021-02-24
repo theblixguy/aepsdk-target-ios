@@ -22,16 +22,18 @@ struct TargetDeliveryRequest: Codable {
     var id: TargetIDs?
     var context: TargetContext
     var experienceCloud: ExperienceCloudInfo?
-    var prefetch: Prefetch?
+    var execute: Mboxes?
+    var prefetch: Mboxes?
     var notifications: [Notification]?
     var environmentId: Int64
     var property: Property?
 
-    init(id: TargetIDs? = nil, context: TargetContext, experienceCloud: ExperienceCloudInfo? = nil, prefetch: Prefetch? = nil, notifications: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
+    init(id: TargetIDs? = nil, context: TargetContext, experienceCloud: ExperienceCloudInfo? = nil, prefetch: Mboxes? = nil, execute: Mboxes? = nil, notifications: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
         self.id = id
         self.context = context
         self.experienceCloud = experienceCloud
         self.prefetch = prefetch
+        self.execute = execute
         self.notifications = notifications
         self.environmentId = environmentId
         self.property = property
@@ -155,9 +157,9 @@ enum PlatformType: String, Codable {
     case ios
 }
 
-// MARK: - Delivery Request - prefetch
+// MARK: - Delivery Request
 
-struct Prefetch: Codable {
+struct Mboxes: Codable {
     var mboxes: [Mbox]
 }
 

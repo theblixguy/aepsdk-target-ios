@@ -218,7 +218,7 @@ public class Target: NSObject, Extension {
         // Check whether request can be sent
         if let error = prepareForTargetRequest(configData: configurationSharedState) {
             Log.debug(label: Target.LOG_TAG, "\(TargetError.ERROR_BATCH_REQUEST_SEND_FAILED) \(error)")
-            runDefaultCallbacks(batchRequests: targetRequests)
+            runDefaultCallbacks(event: event, batchRequests: targetRequests)
             return
         }
 
@@ -228,7 +228,7 @@ public class Target: NSObject, Extension {
 
         if !isInPreviewMode() {
             Log.debug(label: Target.LOG_TAG, "Current cached mboxes : \(targetState.prefetchedMboxJsonDicts.keys.description), size: \(targetState.prefetchedMboxJsonDicts.count)")
-            requestsToSend = processCachedTargetRequest(batchRequests: targetRequests, timeStamp: timestamp)
+            requestsToSend = processCachedTargetRequest(event: event, batchRequests: targetRequests, timeStamp: timestamp)
         }
 
         if requestsToSend.isEmpty && targetState.notifications.isEmpty {
@@ -236,8 +236,12 @@ public class Target: NSObject, Extension {
             return
         }
 
-        sendTargetRequest(event, batchRequests: requestsToSend, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
+        let error = sendTargetRequest(event, batchRequests: requestsToSend, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
             self.processTargetRequestResponse(batchRequests: requestsToSend, event: event, connection: connection)
+        }
+        
+        if let err = error {
+            Log.warning(label: Target.LOG_TAG, err)
         }
     }
 
@@ -469,17 +473,17 @@ public class Target: NSObject, Extension {
                 targetState.saveLoadedMbox(mboxesDictionary: mboxesDictionary)
             }
         } else {
-            runDefaultCallbacks(batchRequests: batchRequests)
+            runDefaultCallbacks(event: event, batchRequests: batchRequests)
             return
         }
 
         for targetRequest in batchRequests {
             var content = ""
-            if let mboxJson = mboxesDictionary[targetRequest.mBoxName] {
+            if let mboxJson = mboxesDictionary[targetRequest.name] {
                 content = extractMboxContent(mBoxJson: mboxJson) ?? targetRequest.defaultContent
                 // TODO: Send A4T for each request
             }
-            dispatchMboxContent(content: content, pairId: nil)
+            dispatchMboxContent(event: event, content: content, responsePairId: targetRequest.responsePairId)
         }
     }
 
@@ -597,8 +601,8 @@ public class Target: NSObject, Extension {
         return lifecycleContextData
     }
 
-    private func sendTargetRequest(_: Event,
-                                   batchRequests _: [TargetRequest]? = nil,
+    private func sendTargetRequest(_ event: Event,
+                                   batchRequests: [TargetRequest]? = nil,
                                    prefetchRequests: [TargetPrefetch]? = nil,
                                    targetParameters: TargetParameters? = nil,
                                    configData: [String: Any],
@@ -613,7 +617,7 @@ public class Target: NSObject, Extension {
         let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleData)
         let propToken = propertyToken != nil ? propertyToken : (configData[TargetConstants.Configuration.SharedState.Keys.TARGET_PROPERTY_TOKEN] as? String ?? "")
 
-        guard let requestJson = DeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propToken)?.toJSON() else {
+        guard let requestJson = DeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetRequestArray: batchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propToken)?.toJSON() else {
             return "Failed to generate request parameter(JSON) for target delivery API call"
         }
 
@@ -733,9 +737,9 @@ public class Target: NSObject, Extension {
     /// Runs the default callback for each of the request in the list.
     /// - Parameters:
     ///     - batchRequests: `[TargetRequests]` to return the default content
-    private func runDefaultCallbacks(batchRequests: [TargetRequest]) {
+    private func runDefaultCallbacks(event: Event, batchRequests: [TargetRequest]) {
         for request in batchRequests {
-            dispatchMboxContent(content: request.defaultContent, pairId: request.responseId)
+            dispatchMboxContent(event: event, content: request.defaultContent, responsePairId: request.responsePairId)
         }
     }
 
@@ -743,29 +747,29 @@ public class Target: NSObject, Extension {
     /// - Parameters:
     ///     - content: the target content
     ///     - pairId: the pairId of the associated target request content event.
-    private func dispatchMboxContent(content: String, pairId _: String?) {
+    private func dispatchMboxContent(event: Event, content: String, responsePairId: String) {
         Log.trace(label: Target.LOG_TAG, "dispatchMboxContent - " + TargetError.ERROR_TARGET_EVENT_DISPATCH_MESSAGE)
-        let event = Event(name: TargetConstants.EventName.TARGET_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: content])
-        // TODO: check how to add pair ID
-        dispatch(event: event)
+
+        let responseEvent = event.createResponseEvent(name: TargetConstants.EventName.TARGET_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: content, TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID: responsePairId])
+
+        MobileCore.dispatch(event: responseEvent)
     }
 
     /// Checks if the cached mboxs contain the data for each of the `TargetRequest` in the input List.
     /// If a cached mbox exists, then dispatch the mbox content.
     ///
-    private func processCachedTargetRequest(batchRequests: [TargetRequest], timeStamp _: Int64) -> [TargetRequest] {
+    private func processCachedTargetRequest(event: Event, batchRequests: [TargetRequest], timeStamp _: Int64) -> [TargetRequest] {
         var requestsToSend: [TargetRequest] = []
         for request in batchRequests {
-            guard let cachedMbox: [String: Any] = targetState.prefetchedMboxJsonDicts[request.mBoxName] else {
-                Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - \(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(request.mBoxName)")
+            guard let cachedMbox: [String: Any] = targetState.prefetchedMboxJsonDicts[request.name] else {
+                Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - \(TargetError.ERROR_NO_CACHED_MBOX_FOUND) \(request.name)")
                 requestsToSend.append(request)
                 continue
             }
-            Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - Cached mbox found for \(request.mBoxName) with data \(cachedMbox.description)")
+            Log.debug(label: Target.LOG_TAG, "processCachedTargetRequest - Cached mbox found for \(request.name) with data \(cachedMbox.description)")
 
             let content = extractMboxContent(mBoxJson: cachedMbox) ?? request.defaultContent
-            // TODO: check what needs to be the pair id
-            dispatchMboxContent(content: content, pairId: nil)
+            dispatchMboxContent(event: event, content: content, responsePairId: request.responsePairId)
         }
 
         return requestsToSend

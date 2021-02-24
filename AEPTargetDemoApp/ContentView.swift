@@ -24,6 +24,10 @@ struct ContentView: View {
                 prefetch()
             }.padding(10)
 
+            Button("GetLocations") {
+                getLocations()
+            }.padding(10)
+
             Button("Location displayed") {
                 locationDisplayed()
             }.padding(10)
@@ -62,6 +66,17 @@ struct ContentView: View {
             ],
             targetParameters: nil, completion: nil
         )
+    }
+
+    func getLocations() {
+        Target.retrieveLocationContent(requests:
+            [TargetRequest(mboxName: "aep-loc-1", defaultContent: "DefaultValue", targetParameters: nil, contentCallback: { content in
+                print(content ?? "")
+            }),
+            TargetRequest(mboxName: "aep-loc-2", defaultContent: "DefaultValue2", targetParameters: nil, contentCallback: { content in
+                print(content ?? "")
+            })],
+            targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
     }
 
     func locationDisplayed() {
