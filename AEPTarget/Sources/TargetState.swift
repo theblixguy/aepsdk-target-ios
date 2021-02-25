@@ -148,6 +148,10 @@ class TargetState {
             }
         }
     }
+    
+    func removeLoadedMbox(mboxName: String) {
+        loadedMboxJsonDicts.removeValue(forKey: mboxName)
+    }
 
     func addNotification(_ notification: Notification) {
         notifications.append(notification)

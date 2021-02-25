@@ -172,6 +172,8 @@ public class Target: NSObject, Extension {
             if connection.responseCode != 200, let error = response.errorMessage {
                 self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
             }
+            
+            self.targetState.clearNotifications()
 
             self.targetState.updateSessionTimestamp()
 
@@ -186,10 +188,14 @@ public class Target: NSObject, Extension {
                 }
                 if !mboxesDictionary.isEmpty { self.targetState.mergePrefetchedMboxJson(mboxesDictionary: mboxesDictionary) }
             }
+            
+            // Remove duplicate loaded mboxes
+            for (k, _) in self.targetState.prefetchedMboxJsonDicts {
+                self.targetState.removeLoadedMbox(mboxName: k)
+            }
 
             self.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.PREFETCH_RESPOND, type: EventType.target, source: EventSource.responseContent, data: nil))
-            // TODO: removeDuplicateLoadedMboxes
-            // TODO: notifications.clear()
+           
             self.startEvents()
         }
 
@@ -300,20 +306,20 @@ public class Target: NSObject, Extension {
                 continue
             }
 
-            // - TODO: dispatchAnalyticsForTargetRequest
+            dispatchAnalyticsForTargetRequest(payload: getAnalyticsForTargetPayload(mboxJson: mboxJson, sessionId: targetState.sessionId))
+        }
 
-            if targetState.notifications.isEmpty {
-                Log.debug(label: Target.LOG_TAG, "displayedLocations - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NOT_SENT)")
-                return
-            }
+        if targetState.notifications.isEmpty {
+            Log.debug(label: Target.LOG_TAG, "displayedLocations - \(TargetError.ERROR_DISPLAY_NOTIFICATION_NOT_SENT)")
+            return
+        }
 
-            let error = sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState, propertyToken: nil) { connection in
-                self.processNotificationResponse(event: event, connection: connection)
-            }
+        let error = sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState, propertyToken: nil) { connection in
+            self.processNotificationResponse(event: event, connection: connection)
+        }
 
-            if let err = error {
-                Log.warning(label: Target.LOG_TAG, err)
-            }
+        if let err = error {
+            Log.warning(label: Target.LOG_TAG, err)
         }
     }
 
@@ -417,6 +423,8 @@ public class Target: NSObject, Extension {
             targetState.clearNotifications()
             Log.debug(label: Target.LOG_TAG, "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
         }
+        
+        targetState.clearNotifications()
 
         guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
             Log.debug(label: Target.LOG_TAG, "Target response parser initialization failed")
@@ -458,6 +466,7 @@ public class Target: NSObject, Extension {
         } else {
             targetState.clearNotifications()
         }
+        
         targetState.updateSessionTimestamp()
         if let tntId = response.tntId { targetState.updateTntId(tntId) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
@@ -481,7 +490,8 @@ public class Target: NSObject, Extension {
             var content = ""
             if let mboxJson = mboxesDictionary[targetRequest.name] {
                 content = extractMboxContent(mBoxJson: mboxJson) ?? targetRequest.defaultContent
-                // TODO: Send A4T for each request
+                let payload = getAnalyticsForTargetPayload(mboxJson: mboxJson, sessionId: targetState.sessionId)
+                dispatchAnalyticsForTargetRequest(payload: payload)
             }
             dispatchMboxContent(event: event, content: content, responsePairId: targetRequest.responsePairId)
         }
@@ -750,7 +760,7 @@ public class Target: NSObject, Extension {
     private func dispatchMboxContent(event: Event, content: String, responsePairId: String) {
         Log.trace(label: Target.LOG_TAG, "dispatchMboxContent - " + TargetError.ERROR_TARGET_EVENT_DISPATCH_MESSAGE)
 
-        let responseEvent = event.createResponseEvent(name: TargetConstants.EventName.TARGET_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: content, TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID: responsePairId])
+        let responseEvent = event.createResponseEvent(name: TargetConstants.EventName.TARGET_REQUEST_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: content, TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID: responsePairId])
 
         MobileCore.dispatch(event: responseEvent)
     }
@@ -810,5 +820,46 @@ public class Target: NSObject, Extension {
         return contentBuilder
     }
 
-    private func getMboxesFromKey(serverResponse _: [String: Any], key _: String) {}
+    /// Dispatches an Analytics Event containing the Analytics for Target (A4T) payload
+    /// - Parameters:
+    ///     - payload: analytics for target (a4t) payload
+    private func dispatchAnalyticsForTargetRequest(payload: [String: String]?) {
+        guard let payloadJson = payload, !payloadJson.isEmpty else {
+            Log.debug(label: Target.LOG_TAG, "dispatchAnalyticsForTargetRequest - Failed to dispatch analytics. Payload is either null or empty")
+            return
+        }
+
+        let eventData = [TargetConstants.EventDataKeys.Analytics.CONTEXT_DATA: payloadJson,
+                         TargetConstants.EventDataKeys.Analytics.TRACK_ACTION: TargetConstants.A4T_ACTION_NAME,
+                         TargetConstants.EventDataKeys.Analytics.TRACK_INTERNAL: true] as [String: Any]
+        let event = Event(name: TargetConstants.EventName.ANALYTICS_FOR_TARGET_REQUEST_EVENT_NAME, type: EventType.analytics, source: EventSource.requestContent, data: eventData)
+        MobileCore.dispatch(event: event)
+    }
+
+    /// Grabs the a4t payload from the target response and convert the keys to correct format
+    /// Returns an empty `Dictionary` if there are no analytics payload that needs to be sent.
+    /// - Parameters:
+    ///     - mboxJson: A prefetched mbox dictionary
+    ///     - sessionId: session id
+    /// - Returns: `Dictionary` containing a4t payload
+    private func getAnalyticsForTargetPayload(mboxJson: [String: Any], sessionId: String) -> [String: String]? {
+        var payload: [String: String] = [:]
+        guard let analyticsJson = mboxJson[TargetConstants.TargetJson.ANALYTICS_PARAMETERS] as? [String: Any] else {
+            return nil
+        }
+
+        guard let payloadJson: [String: String] = analyticsJson[TargetConstants.TargetJson.ANALYTICS_PAYLOAD] as? [String: String] else {
+            return nil
+        }
+
+        for (k, v) in payloadJson {
+            payload["&&\(k)"] = v
+        }
+
+        if !sessionId.isEmpty {
+            payload[TargetConstants.TargetJson.SESSION_ID] = sessionId
+        }
+
+        return payload
+    }
 }

@@ -16,7 +16,7 @@ import Foundation
 
 @objc public extension Target {
     private static var isResponseListenerRegister: Bool = false
-    private static var responseIdToRequest: [String: TargetRequest] = [:]
+    private static var pendingTargetRequest: [String: TargetRequest] = [:]
 
     /// Prefetch multiple Target mboxes simultaneously.
     ///
@@ -115,7 +115,7 @@ import Foundation
         let event = Event(name: TargetConstants.EventName.LOAD_REQUEST, type: EventType.target, source: EventSource.requestContent, data: eventData)
 
         for (k, v) in tempIdToRequest {
-            responseIdToRequest["\(event.id)-\(k)"] = v
+            pendingTargetRequest["\(event.id)-\(k)"] = v
         }
 
         Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.description)")
@@ -276,6 +276,10 @@ import Foundation
     }
 
     private static func handleResponseEvent(_ event: Event) {
+        if event.name != TargetConstants.EventName.TARGET_REQUEST_RESPONSE {
+            return
+        }
+
         guard let id = event.responseID,
               let responsePairId = event.data?[TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID] as? String
         else {
@@ -283,12 +287,12 @@ import Foundation
             return
         }
         let searchId = "\(id)-\(responsePairId)"
-        guard let targetRequest = responseIdToRequest[searchId] else {
+        guard let targetRequest = pendingTargetRequest[searchId] else {
             Log.error(label: LOG_TAG, "Missing target request for the \(searchId)")
             return
         }
         // Remove the target request from the map
-        responseIdToRequest.removeValue(forKey: searchId)
+        pendingTargetRequest.removeValue(forKey: searchId)
 
         guard let callback = targetRequest.contentCallback else {
             Log.warning(label: LOG_TAG, "Missing callback for target request with pair id the \(responsePairId)")

@@ -22,6 +22,7 @@ enum TargetConstants {
     static let API_URL_HOST_BASE = "%@.tt.omtrdc.net"
     static let HEADER_CONTENT_TYPE = "Content-Type"
     static let HEADER_CONTENT_TYPE_JSON = "application/json"
+    static let A4T_ACTION_NAME = "AnalyticsForTarget"
 
     static let MAP_TO_CONTEXT_DATA_KEYS: [String: String] = [
         Identity.SharedState.Keys.ADVERTISING_IDENTIFIER: ContextDataKeys.ADVERTISING_IDENTIFIER,
@@ -83,6 +84,10 @@ enum TargetConstants {
         static let METRICS = "metrics"
         static let HTML = "html"
         static let JSON = "json"
+        static let ANALYTICS_PARAMETERS = "analytics"
+        static let ANALYTICS_PAYLOAD = "payload"
+        /// For A4T requests event data.
+        static let SESSION_ID = "a.target.sessionId"
 
         enum Notification {
             static let ID = "id"
@@ -140,6 +145,8 @@ enum TargetConstants {
         static let LOCATION_CLICKED = "TargetLocationClicked"
         static let IDENTITY_RESPONSE = "TargetResponseIdentity"
         static let TARGET_RESPONSE = "TargetResponse"
+        static let TARGET_REQUEST_RESPONSE = "TargetRequestResponse"
+        static let ANALYTICS_FOR_TARGET_REQUEST_EVENT_NAME = "AnalyticsForTargetRequest"
     }
 
     enum EventDataKeys {
@@ -164,6 +171,12 @@ enum TargetConstants {
         // shared sate
         static let TNT_ID = "tntid"
         static let PREVIEW_INITIATED = "ispreviewinitiated"
+
+        enum Analytics {
+            static let TRACK_INTERNAL = "trackinternal"
+            static let TRACK_ACTION = "action"
+            static let CONTEXT_DATA = "contextdata"
+        }
     }
 
     enum Identity {
