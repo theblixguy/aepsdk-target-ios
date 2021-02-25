@@ -89,4 +89,35 @@ class TargetPublicAPITests: XCTestCase {
             expectation.fulfill()
         }
     }
+
+    func testLocationDisplayed() throws {
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
+            guard let eventData = event.data, let mboxes = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String],
+                  let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
+            else {
+                return
+            }
+            XCTAssertTrue(event.isLocationsDisplayedEvent)
+            XCTAssertTrue(mboxes.contains("Drink_1"))
+            XCTAssertTrue(mboxes.contains("Drink_2"))
+            XCTAssertEqual("Smith", parameters.profileParameters?["name"])
+        }
+
+        Target.displayedLocations(mboxNames: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+    }
+
+    func testLocationClicked() throws {
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
+            guard let eventData = event.data, let mbox = eventData[TargetConstants.EventDataKeys.MBOX_NAME] as? String,
+                  let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
+            else {
+                return
+            }
+            XCTAssertTrue(event.isLocationClickedEvent)
+            XCTAssertTrue(mbox == "Drink_1")
+            XCTAssertEqual("Smith", parameters.profileParameters?["name"])
+        }
+
+        Target.clickedLocation(mboxName: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+    }
 }

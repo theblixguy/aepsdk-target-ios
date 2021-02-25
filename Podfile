@@ -12,6 +12,13 @@ target 'AEPTarget' do
   pod 'AEPIdentity'
 end
 
+target 'AEPTargetDemoApp' do
+  pod 'AEPCore'
+  pod 'AEPIdentity'
+  pod 'AEPLifecycle'
+  pod 'AEPSignal'
+end
+
 target 'AEPTargetTests' do
   pod 'AEPCore'
   pod 'AEPIdentity'

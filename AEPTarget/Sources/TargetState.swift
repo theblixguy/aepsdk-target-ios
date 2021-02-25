@@ -1,5 +1,5 @@
 /*
- Copyright 2020 Adobe. All rights reserved.
+ Copyright 2021 Adobe. All rights reserved.
  This file is licensed to you under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License. You may obtain a copy
  of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -36,6 +36,8 @@ class TargetState {
     private(set) var thirdPartyId: String?
     private(set) var clientCode: String?
     private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
+    private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
+    private(set) var notifications = [Notification]()
     private(set) var sessionTimeoutInSeconds: Int
     private var storedSessionId: String
 
@@ -71,6 +73,11 @@ class TargetState {
         self.edgeHost = edgeHost
     }
 
+    /// Updates the client code in memory and in the data store
+    func updateClientCode(_ clientCode: String) {
+        self.clientCode = clientCode
+    }
+
     /// Generates a `Target` shared state with the stored TNT ID and third party id.
     func generateSharedState() -> [String: Any] {
         var eventData = [String: Any]()
@@ -82,6 +89,14 @@ class TargetState {
     /// Combines the prefetched mboxes with the cached mboxes
     func mergePrefetchedMboxJson(mboxesDictionary: [String: [String: Any]]) {
         prefetchedMboxJsonDicts = prefetchedMboxJsonDicts.merging(mboxesDictionary) { _, new in new }
+    }
+
+    func addNotification(_ notification: Notification) {
+        notifications.append(notification)
+    }
+
+    func clearNotifications() {
+        notifications.removeAll()
     }
 
     /// Verifies if current target session is expired.

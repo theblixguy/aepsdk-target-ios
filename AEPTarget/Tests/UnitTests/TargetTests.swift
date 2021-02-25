@@ -19,6 +19,12 @@ class TargetTests: XCTestCase {
     var target: Target!
     var mockRuntime: TestableExtensionRuntime!
 
+    var mockMBox = ["mbox1", "mbox2"]
+    var mockMBoxJson = ["mbox1": ["state": "state1", "options": [["eventToken": "sometoken"]], "metrics": [["type": "click", "eventToken": "eventToken"]]],
+                        "mbox2": ["state": "state2", "options": [["eventToken": "sometoken2"]]]]
+    var mockProfileParam = ["name": "Smith"]
+    var mockConfigSharedState = ["target.clientCode": "code_123", "global.privacy": "optedin"]
+
     override func setUp() {
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
@@ -55,10 +61,62 @@ class TargetTests: XCTestCase {
 
         let data: [String: Any] = [
             "prefetch": prefetchDataArray,
-            "targetparams": TargetParameters(profileParameters: ["name": "Smith"]).asDictionary() as Any,
+            "targetparams": TargetParameters(profileParameters: mockProfileParam).asDictionary() as Any,
         ]
         let event = Event(name: "", type: "", source: "", data: data)
-        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: ["target.clientCode": "code_123", "global.privacy": "optedin"], status: .set))
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestContent"] {
+            eventListener(event)
+            XCTAssertNotNil(MockNetworkService.request)
+            if let url = MockNetworkService.request?.url.absoluteString {
+                XCTAssertTrue(url.hasPrefix("https://code_123.tt.omtrdc.net/rest/v1/delivery/?client=code_123&sessionId="))
+            } else {
+                XCTFail()
+            }
+            return
+        }
+        XCTFail()
+    }
+
+    func testLocationDisplayed() {
+        MockNetworkService.request = nil
+        ServiceProvider.shared.networkService = MockNetworkService()
+        target.targetState.mergePrefetchedMboxJson(mboxesDictionary: mockMBoxJson)
+
+        let data: [String: Any] = [
+            "mboxnames": mockMBox,
+            "targetparams": TargetParameters(profileParameters: mockProfileParam).asDictionary() as Any,
+            TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true,
+        ]
+        let event = Event(name: "", type: "", source: "", data: data)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestContent"] {
+            eventListener(event)
+            XCTAssertNotNil(MockNetworkService.request)
+            if let url = MockNetworkService.request?.url.absoluteString {
+                XCTAssertTrue(url.hasPrefix("https://code_123.tt.omtrdc.net/rest/v1/delivery/?client=code_123&sessionId="))
+            } else {
+                XCTFail()
+            }
+            return
+        }
+        XCTFail()
+    }
+
+    func testLocationClicked() {
+        MockNetworkService.request = nil
+        ServiceProvider.shared.networkService = MockNetworkService()
+        target.targetState.mergePrefetchedMboxJson(mboxesDictionary: mockMBoxJson)
+
+        let data: [String: Any] = [
+            "mboxname": "mbox1",
+            "targetparams": TargetParameters(profileParameters: mockProfileParam).asDictionary() as Any,
+            TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true,
+        ]
+        let event = Event(name: "", type: "", source: "", data: data)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
         target.onRegistered()
         if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestContent"] {
             eventListener(event)

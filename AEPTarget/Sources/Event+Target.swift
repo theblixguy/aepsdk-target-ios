@@ -21,11 +21,21 @@ extension Event {
 
     /// Reads the `TargetParameters` from the event data
     var targetParameters: TargetParameters? {
-        TargetParameters.from(dictionary: data?[TargetConstants.EventDataKeys.TARGET_PARAMETERS] as? [String: Any])
+        return TargetParameters.from(dictionary: data?[TargetConstants.EventDataKeys.TARGET_PARAMETERS] as? [String: Any])
     }
 
     /// Returns true if this event is a prefetch request event
     var isPrefetchEvent: Bool {
         return data?[TargetConstants.EventDataKeys.PREFETCH_REQUESTS] != nil ? true : false
+    }
+
+    /// Returns true if the event is location display request event
+    var isLocationsDisplayedEvent: Bool {
+        return data?[TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED] as? Bool ?? false
+    }
+
+    /// Returns true if the event is location clicked request event
+    var isLocationClickedEvent: Bool {
+        return data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] as? Bool ?? false
     }
 }
