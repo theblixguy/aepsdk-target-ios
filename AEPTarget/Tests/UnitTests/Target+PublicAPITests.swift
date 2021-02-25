@@ -92,24 +92,32 @@ class TargetPublicAPITests: XCTestCase {
 
     func testLocationDisplayed() throws {
         EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
-            guard let eventData = event.data, let prefetchArray = TargetPrefetch.from(dictionaries: eventData["prefetch"] as? [[String: Any]]),
+            guard let eventData = event.data, let mboxes = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String],
                   let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
             else {
                 return
             }
-            XCTAssertEqual(2, prefetchArray.count)
-            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_1"))
-            XCTAssertTrue([prefetchArray[0].name, prefetchArray[1].name].contains("Drink_2"))
+            XCTAssertTrue(event.isLocationsDisplayedEvent)
+            XCTAssertTrue(mboxes.contains("Drink_1"))
+            XCTAssertTrue(mboxes.contains("Drink_2"))
             XCTAssertEqual("Smith", parameters.profileParameters?["name"])
         }
 
-        Target.prefetchContent(
-            prefetchObjectArray: [
-                TargetPrefetch(name: "Drink_1", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
-                TargetPrefetch(name: "Drink_2", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
-            ],
-            targetParameters: TargetParameters(profileParameters: ["name": "Smith"]),
-            completion: nil
-        )
+        Target.displayedLocations(mboxNames: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+    }
+
+    func testLocationClicked() throws {
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
+            guard let eventData = event.data, let mbox = eventData[TargetConstants.EventDataKeys.MBOX_NAME] as? String,
+                  let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
+            else {
+                return
+            }
+            XCTAssertTrue(event.isLocationClickedEvent)
+            XCTAssertTrue(mbox == "Drink_1")
+            XCTAssertEqual("Smith", parameters.profileParameters?["name"])
+        }
+
+        Target.clickedLocation(mboxName: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
     }
 }
