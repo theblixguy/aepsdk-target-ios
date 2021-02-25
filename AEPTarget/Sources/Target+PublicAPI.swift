@@ -15,7 +15,9 @@ import AEPServices
 import Foundation
 
 @objc public extension Target {
+    /// true if the response content event listener is already registered, false otherwise
     private static var isResponseListenerRegister: Bool = false
+    /// `Dictionary` to keep track of pending target request
     private static var pendingTargetRequest: [String: TargetRequest] = [:]
 
     /// Prefetch multiple Target mboxes simultaneously.
@@ -79,7 +81,7 @@ import Foundation
     ///   - requests:  An array of AEPTargetRequestObject objects to retrieve content
     ///   - targetParameters: a TargetParameters object containing parameters for all locations in the requests array
     @objc(retrieveLocationContent:withParameters:)
-    static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters) {
+    static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters?) {
         if requests.isEmpty {
             Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_REQUEST_MESSAGE)")
             return
@@ -108,21 +110,24 @@ import Foundation
             targetRequestsArray.append(requestObj)
         }
 
-        // Register the response content listener
-        registerResponseContentEvent()
+        // Register the response content event listener
+        registerResponseContentEventListener()
 
-        let eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: targetRequestsArray, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters] as [String: Any]
+        var eventData = [TargetConstants.EventDataKeys.LOAD_REQUESTS: targetRequestsArray] as [String: Any]
+        if let targetParametersDict = targetParameters?.asDictionary() {
+            eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict
+        }
         let event = Event(name: TargetConstants.EventName.LOAD_REQUEST, type: EventType.target, source: EventSource.requestContent, data: eventData)
 
+        // Update the pending target request dictionary with
+        // key = `event.id-request.responsePairId`, value = `TargetRequest` object
         for (k, v) in tempIdToRequest {
             pendingTargetRequest["\(event.id)-\(k)"] = v
         }
 
         Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.description)")
 
-        MobileCore.dispatch(event: event) { event in
-            Log.debug(label: "Public API RESPONSE", "\(String(describing: event?.responseID))")
-        }
+        MobileCore.dispatch(event: event)
     }
 
     /// Sets the custom visitor ID for Target.
@@ -268,13 +273,18 @@ import Foundation
         MobileCore.dispatch(event: event)
     }
 
-    private static func registerResponseContentEvent() {
+    /// Registers the response content event listener
+    private static func registerResponseContentEventListener() {
+        // Only register the listener once
         if !isResponseListenerRegister {
             MobileCore.registerEventListener(type: EventType.target, source: EventSource.responseContent, listener: handleResponseEvent(_:))
             isResponseListenerRegister = true
         }
     }
 
+    /// Handles the response event with event name as `TargetConstants.EventName.TARGET_REQUEST_RESPONSE`
+    /// - Parameters:
+    ///     - event: Response content event with content
     private static func handleResponseEvent(_ event: Event) {
         if event.name != TargetConstants.EventName.TARGET_REQUEST_RESPONSE {
             return
@@ -286,6 +296,7 @@ import Foundation
             Log.error(label: LOG_TAG, "Missing response pair id for the target request in the response event")
             return
         }
+
         let searchId = "\(id)-\(responsePairId)"
         guard let targetRequest = pendingTargetRequest[searchId] else {
             Log.error(label: LOG_TAG, "Missing target request for the \(searchId)")
