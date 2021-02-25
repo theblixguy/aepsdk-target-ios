@@ -289,6 +289,50 @@ class DeliveryRequestBuilderTests: XCTestCase {
         XCTAssertTrue(notification?.tokens?.first == "token1")
     }
 
+    func testBuild_BatchRequest() {
+        ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
+        let request = DeliveryRequestBuilder.build(
+            tntId: "tnt_id_1",
+            thirdPartyId: "thirdPartyId_1",
+            identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],
+            lifecycleSharedState: [
+                "a.OSVersion": "iOS 14.2",
+                "a.DaysSinceFirstUse": "0",
+                "a.CrashEvent": "CrashEvent",
+                "a.CarrierName": "(nil)",
+                "a.Resolution": "828x1792",
+                "a.RunMode": "Application",
+                "a.ignoredSessionLength": "-1605549540",
+                "a.HourOfDay": "11",
+                "a.AppID": "v5ManualTestApp 1.0 (1)",
+                "a.DayOfWeek": "2",
+                "a.DeviceName": "x86_64",
+                "a.LaunchEvent": "LaunchEvent",
+                "a.Launches": "2",
+                "a.DaysSinceLastUse": "0",
+                "a.locale": "en-US",
+            ],
+            targetRequestArray: [TargetRequest(mboxName: "Drink_1", defaultContent: "default", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
+                                 TargetRequest(mboxName: "Drink_2", defaultContent: "default2", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"]))],
+            targetParameters: TargetParameters(profileParameters: ["name": "Smith"])
+        )
+
+        if let data = EXPECTED_BATCH_JSON.data(using: .utf8),
+           let jsonArray = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let result = request?.asDictionary()
+        {
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["id"] as! [String: Any]).isEqual(to: result["id"] as! [String: Any]))
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["experienceCloud"] as! [String: Any]).isEqual(to: result["experienceCloud"] as! [String: Any]))
+            var context = result["context"] as! [String: Any]
+            context["timeOffsetInMinutes"] = 0
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["context"] as! [String: Any]).isEqual(to: context))
+            XCTAssertTrue(NSDictionary(dictionary: jsonArray["execute"] as! [String: Any]).isEqual(to: result["execute"] as! [String: Any]))
+            return
+        }
+
+        XCTFail()
+    }
+
     private var mockCacheMBoxJson = ["state": "state1", "options": [["eventToken": "sometoken"]]] as [String: Any]
     private var mockTargetParams = TargetParameters(parameters: ["p": "v", "__oldTargetSdkApiCompatParam__": "removeit"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1"))
     private var mockLifecycleContextData = ["a.OSVersion": "iOS 14.2"]
@@ -332,6 +376,100 @@ class DeliveryRequestBuilderTests: XCTestCase {
         "timeOffsetInMinutes": 0
       },
       "prefetch": {
+        "mboxes": [
+          {
+            "parameters": {
+              "a.OSVersion": "iOS 14.2",
+              "a.DaysSinceFirstUse": "0",
+              "a.CrashEvent": "CrashEvent",
+              "a.CarrierName": "(nil)",
+              "a.Resolution": "828x1792",
+              "a.RunMode": "Application",
+              "a.ignoredSessionLength": "-1605549540",
+              "a.HourOfDay": "11",
+              "a.DeviceName": "x86_64",
+              "a.DayOfWeek": "2",
+              "a.LaunchEvent": "LaunchEvent",
+              "a.AppID": "v5ManualTestApp 1.0 (1)",
+              "a.Launches": "2",
+              "a.DaysSinceLastUse": "0",
+              "a.locale": "en-US"
+            },
+            "profileParameters": {
+              "name": "Smith",
+              "mbox-parameter-key1": "mbox-parameter-value1"
+            },
+            "name": "Drink_1",
+            "index": 0
+          },
+          {
+            "parameters": {
+              "a.OSVersion": "iOS 14.2",
+              "a.DaysSinceFirstUse": "0",
+              "a.CrashEvent": "CrashEvent",
+              "a.CarrierName": "(nil)",
+              "a.Resolution": "828x1792",
+              "a.RunMode": "Application",
+              "a.ignoredSessionLength": "-1605549540",
+              "a.HourOfDay": "11",
+              "a.DeviceName": "x86_64",
+              "a.DayOfWeek": "2",
+              "a.LaunchEvent": "LaunchEvent",
+              "a.AppID": "v5ManualTestApp 1.0 (1)",
+              "a.Launches": "2",
+              "a.DaysSinceLastUse": "0",
+              "a.locale": "en-US"
+            },
+            "profileParameters": {
+              "mbox-parameter-key1": "mbox-parameter-value1",
+              "name": "Smith"
+            },
+            "name": "Drink_2",
+            "index": 1
+          }
+        ]
+      }
+    }
+    """
+
+    private let EXPECTED_BATCH_JSON = """
+    {
+      "id": {
+        "tntId": "tnt_id_1",
+        "marketingCloudVisitorId": "mid_xxxx",
+        "thirdPartyId": "thirdPartyId_1"
+      },
+      "experienceCloud": {
+        "analytics": {
+          "logging": "client_side"
+        },
+        "audienceManager": {
+          "blob": "blob_xxx",
+          "locationHint": "9"
+        }
+      },
+      "context": {
+        "userAgent": "Mozilla/5.0 (iPhone; CPU OS 14_0; en_US)",
+        "mobilePlatform": {
+          "deviceName": "My iPhone",
+          "deviceType": "phone",
+          "platformType": "ios"
+        },
+        "screen": {
+          "colorDepth": 32,
+          "width": 1125,
+          "height": 2436,
+          "orientation": "portrait"
+        },
+        "channel": "mobile",
+        "application": {
+          "id": "com.adobe.marketing.mobile.testing",
+          "name": "test_app",
+          "version": "1.2"
+        },
+        "timeOffsetInMinutes": 0
+      },
+      "execute": {
         "mboxes": [
           {
             "parameters": {

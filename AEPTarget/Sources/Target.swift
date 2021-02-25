@@ -162,6 +162,11 @@ public class Target: NSObject, Extension {
         }
 
         let error = sendTargetRequest(event, prefetchRequests: targetPrefetchArray, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
+            if connection.responseCode != 200 {
+                self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
+            }
+            // Clear notification
+            self.targetState.clearNotifications()
 
             guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
                 self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
@@ -169,11 +174,10 @@ public class Target: NSObject, Extension {
             }
             let response = DeliveryResponse(responseJson: dict)
 
-            if connection.responseCode != 200, let error = response.errorMessage {
+            if let error = response.errorMessage {
+                self.targetState.clearNotifications()
                 self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
             }
-            
-            self.targetState.clearNotifications()
 
             self.targetState.updateSessionTimestamp()
 
@@ -188,14 +192,14 @@ public class Target: NSObject, Extension {
                 }
                 if !mboxesDictionary.isEmpty { self.targetState.mergePrefetchedMboxJson(mboxesDictionary: mboxesDictionary) }
             }
-            
+
             // Remove duplicate loaded mboxes
             for (k, _) in self.targetState.prefetchedMboxJsonDicts {
                 self.targetState.removeLoadedMbox(mboxName: k)
             }
 
             self.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.PREFETCH_RESPOND, type: EventType.target, source: EventSource.responseContent, data: nil))
-           
+
             self.startEvents()
         }
 
@@ -245,7 +249,7 @@ public class Target: NSObject, Extension {
         let error = sendTargetRequest(event, batchRequests: requestsToSend, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
             self.processTargetRequestResponse(batchRequests: requestsToSend, event: event, connection: connection)
         }
-        
+
         if let err = error {
             Log.warning(label: Target.LOG_TAG, err)
         }
@@ -423,7 +427,7 @@ public class Target: NSObject, Extension {
             targetState.clearNotifications()
             Log.debug(label: Target.LOG_TAG, "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
         }
-        
+
         targetState.clearNotifications()
 
         guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
@@ -455,18 +459,24 @@ public class Target: NSObject, Extension {
     ///     - event: event which triggered this network call
     ///     - connection: `NetworkService.HttpConnection` instance
     private func processTargetRequestResponse(batchRequests: [TargetRequest], event: Event, connection: HttpConnection) {
+        if connection.responseCode != 200 {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
+        }
+
+        // clear notifications
+        targetState.clearNotifications()
+
         guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
             dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
             return
         }
         let response = DeliveryResponse(responseJson: dict)
 
-        if connection.responseCode != 200, let error = response.errorMessage {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
-        } else {
+        if let error = response.errorMessage {
             targetState.clearNotifications()
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target request response: \(error)")
         }
-        
+
         targetState.updateSessionTimestamp()
         if let tntId = response.tntId { targetState.updateTntId(tntId) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
@@ -611,7 +621,7 @@ public class Target: NSObject, Extension {
         return lifecycleContextData
     }
 
-    private func sendTargetRequest(_ event: Event,
+    private func sendTargetRequest(_: Event,
                                    batchRequests: [TargetRequest]? = nil,
                                    prefetchRequests: [TargetPrefetch]? = nil,
                                    targetParameters: TargetParameters? = nil,

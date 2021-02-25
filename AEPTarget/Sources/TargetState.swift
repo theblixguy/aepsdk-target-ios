@@ -148,7 +148,7 @@ class TargetState {
             }
         }
     }
-    
+
     func removeLoadedMbox(mboxName: String) {
         loadedMboxJsonDicts.removeValue(forKey: mboxName)
     }
