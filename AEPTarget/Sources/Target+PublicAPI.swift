@@ -100,14 +100,19 @@ import Foundation
                 continue
             }
 
-            guard let requestObj = request.asDictionary() else {
-                Log.error(label: Target.LOG_TAG, "Failed to convert Target request to [String: Any] dictionary), prefetch => \(request.description)")
+            guard let requestDictionary = request.asDictionary() else {
+                Log.error(label: Target.LOG_TAG, "Failed to convert Target request to [String: Any] dictionary), prefetch => \(String(describing: request))")
                 continue
             }
 
             tempIdToRequest[request.responsePairId] = request
 
-            targetRequestsArray.append(requestObj)
+            targetRequestsArray.append(requestDictionary)
+        }
+        
+        if targetRequestsArray.isEmpty {
+            Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request is empty")
+            return
         }
 
         // Register the response content event listener
@@ -121,11 +126,11 @@ import Foundation
 
         // Update the pending target request dictionary with
         // key = `event.id-request.responsePairId`, value = `TargetRequest` object
-        for (k, v) in tempIdToRequest {
-            pendingTargetRequest["\(event.id)-\(k)"] = v
+        for (responsePairId, targetRequest) in tempIdToRequest {
+            pendingTargetRequest["\(event.id)-\(responsePairId)"] = targetRequest
         }
 
-        Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.description)")
+        Log.trace(label: Target.LOG_TAG, "retrieveLocationContent - Event dispatched \(event.name), \(event.id.uuidString)")
 
         MobileCore.dispatch(event: event)
     }

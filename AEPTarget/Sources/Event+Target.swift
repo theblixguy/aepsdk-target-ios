@@ -31,7 +31,7 @@ extension Event {
 
     /// Returns true if this event is a load request event
     var isLoadRequest: Bool {
-        return data?[TargetConstants.EventDataKeys.LOAD_REQUESTS] != nil ? true : false
+        return data?[TargetConstants.EventDataKeys.LOAD_REQUESTS] != nil
     }
 
     /// Reads an array`TargetRequest` from the event data
