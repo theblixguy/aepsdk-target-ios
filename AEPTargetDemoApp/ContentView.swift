@@ -28,7 +28,7 @@ struct ContentView: View {
                 getLocations()
             }.padding(10)
 
-            Button("Location displayed") {
+            Button("Locations displayed") {
                 locationDisplayed()
             }.padding(10)
 

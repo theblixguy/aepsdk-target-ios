@@ -13,7 +13,7 @@ import Foundation
 
 /// Struct to represent Target Delivery API call JSON response.
 /// For more details refer to https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
-struct DeliveryResponse {
+struct TargetDeliveryResponse {
     let responseJson: [String: Any]
 
     // Exists in Error response

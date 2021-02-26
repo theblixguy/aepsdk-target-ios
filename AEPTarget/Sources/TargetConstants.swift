@@ -109,7 +109,6 @@ enum TargetConstants {
 
         enum Mbox {
             static let STATE = "state"
-            static let MBOX_AT_PROPERTY_KEY = "at_property"
             static let NAME = "name"
             static let INDEX = "index"
         }
@@ -158,14 +157,14 @@ enum TargetConstants {
         static let RESET_EXPERIENCE = "resetexperience"
         static let CLEAR_PREFETCH_CACHE = "clearcache"
         static let PREVIEW_RESTART_DEEP_LINK = "restartdeeplink"
-        static let MBOX_NAMES = "mboxnames"
-        static let MBOX_NAME = "mboxname"
+        static let MBOX_NAMES = "names"
+        static let MBOX_NAME = "name"
         static let IS_LOCATION_DISPLAYED = "islocationdisplayed"
         static let IS_LOCATION_CLICKED = "islocationclicked"
-        static let MBOX_PARAMETERS = "mboxparameters"
+        static let MBOX_PARAMETERS = "parameters"
         static let ORDER_PARAMETERS = "orderparameters"
         static let PRODUCT_PARAMETERS = "productparameters"
-        static let PROFILE_PARAMETERS = "profileparams"
+        static let PROFILE_PARAMETERS = "profileparameters"
         static let TARGET_CONTENT = "content"
         static let TARGET_RESPONSE_PAIR_ID = "responsePairId"
         // shared sate

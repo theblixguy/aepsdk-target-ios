@@ -85,7 +85,7 @@ class TargetTests: XCTestCase {
         target.targetState.mergePrefetchedMboxJson(mboxesDictionary: mockMBoxJson)
 
         let data: [String: Any] = [
-            "mboxnames": mockMBox,
+            "names": mockMBox,
             "targetparams": TargetParameters(profileParameters: mockProfileParam).asDictionary() as Any,
             TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true,
         ]
@@ -111,7 +111,7 @@ class TargetTests: XCTestCase {
         target.targetState.mergePrefetchedMboxJson(mboxesDictionary: mockMBoxJson)
 
         let data: [String: Any] = [
-            "mboxname": "mbox1",
+            "name": "mbox1",
             "targetparams": TargetParameters(profileParameters: mockProfileParam).asDictionary() as Any,
             TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true,
         ]

@@ -151,7 +151,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
 
     func testBuild_Prefetch() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
-        let request = DeliveryRequestBuilder.build(
+        let request = TargetDeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
             thirdPartyId: "thirdPartyId_1",
             identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],
@@ -197,7 +197,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
 
     func testBuild_Notification() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
-        let request = DeliveryRequestBuilder.build(
+        let request = TargetDeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
             thirdPartyId: "thirdPartyId_1",
             identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],
@@ -245,19 +245,19 @@ class DeliveryRequestBuilderTests: XCTestCase {
     }
 
     func testGetDisplayNotification_withNoState() {
-        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["mboxes": "mboxes1"], parameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
+        let notification = TargetDeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["mboxes": "mboxes1"], targetParameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
 
         XCTAssertNil(notification)
     }
 
     func testGetDisplayNotification_withNoTokense() {
-        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["state": "state1"], parameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
+        let notification = TargetDeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: ["state": "state1"], targetParameters: TargetParameters(parameters: ["p": "v"], profileParameters: ["name": "myname"], order: TargetOrder(id: "oid1"), product: TargetProduct(productId: "pid1")), timestamp: 12345, lifecycleContextData: ["a.OSVersion": "iOS 14.2"])
 
         XCTAssertNil(notification)
     }
 
     func testGetDisplayNotification() {
-        let notification = DeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: mockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+        let notification = TargetDeliveryRequestBuilder.getDisplayNotification(mboxName: "Drink_1", cachedMboxJson: mockCacheMBoxJson, targetParameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
 
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
@@ -267,7 +267,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
     }
 
     func testGetClickedNotification_NoMMboxName() {
-        let notification = DeliveryRequestBuilder.getClickedNotification(cachedMboxJson: mockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+        let notification = TargetDeliveryRequestBuilder.getClickedNotification(cachedMboxJson: mockCacheMBoxJson, targetParameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
 
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
@@ -280,7 +280,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
         var tempMockCacheMBoxJson = mockCacheMBoxJson
         tempMockCacheMBoxJson["name"] = "Drink_1"
         tempMockCacheMBoxJson["metrics"] = metrics
-        let notification = DeliveryRequestBuilder.getClickedNotification(cachedMboxJson: tempMockCacheMBoxJson, parameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
+        let notification = TargetDeliveryRequestBuilder.getClickedNotification(cachedMboxJson: tempMockCacheMBoxJson, targetParameters: mockTargetParams, timestamp: 12345, lifecycleContextData: mockLifecycleContextData)
 
         XCTAssertNotNil(notification)
         XCTAssertNotNil(notification?.id)
@@ -291,7 +291,7 @@ class DeliveryRequestBuilderTests: XCTestCase {
 
     func testBuild_BatchRequest() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
-        let request = DeliveryRequestBuilder.build(
+        let request = TargetDeliveryRequestBuilder.build(
             tntId: "tnt_id_1",
             thirdPartyId: "thirdPartyId_1",
             identitySharedState: ["mid": "mid_xxxx", "blob": "blob_xxx", "locationhint": "9"],

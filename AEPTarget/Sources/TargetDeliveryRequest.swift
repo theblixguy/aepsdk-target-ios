@@ -19,16 +19,16 @@ import Foundation
 struct TargetDeliveryRequest: Codable {
     static let LOG_TAG = "TargetDeliveryRequest"
 
-    var id: TargetIDs?
+    var id: TargetIDs
     var context: TargetContext
-    var experienceCloud: ExperienceCloudInfo?
+    var experienceCloud: ExperienceCloudInfo
     var execute: Mboxes?
     var prefetch: Mboxes?
     var notifications: [Notification]?
     var environmentId: Int64
     var property: Property?
 
-    init(id: TargetIDs? = nil, context: TargetContext, experienceCloud: ExperienceCloudInfo? = nil, prefetch: Mboxes? = nil, execute: Mboxes? = nil, notifications: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
+    init(id: TargetIDs, context: TargetContext, experienceCloud: ExperienceCloudInfo, prefetch: Mboxes? = nil, execute: Mboxes? = nil, notifications: [Notification]? = nil, environmentId: Int64 = 0, property: Property? = nil) {
         self.id = id
         self.context = context
         self.experienceCloud = experienceCloud

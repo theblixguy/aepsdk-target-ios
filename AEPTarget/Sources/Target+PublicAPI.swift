@@ -232,14 +232,14 @@ import Foundation
     /// - Parameters:
     ///   - mboxNames:  (required) an array of displayed location names
     ///   - targetParameters: for the displayed location
-    @objc(displayedLocations:withParameters:)
-    static func displayedLocations(mboxNames: [String], targetParameters: TargetParameters?) {
-        if mboxNames.isEmpty {
+    @objc(displayedLocations:withTargetParameters:)
+    static func displayedLocations(names: [String], targetParameters: TargetParameters?) {
+        if names.isEmpty {
             Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty.")
             return
         }
 
-        var eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any]
+        var eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: names, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any]
 
         if let targetParametersDict = targetParameters?.asDictionary() {
             eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict
@@ -256,14 +256,14 @@ import Foundation
     /// - Parameters:
     ///   - mboxName:  NSString value representing the name for location/mbox
     ///   - targetParameters:  a TargetParameters object containing parameters for the location clicked
-    @objc(clickedLocation:withParameters:)
-    static func clickedLocation(mboxName: String, targetParameters: TargetParameters?) {
-        if mboxName.isEmpty {
+    @objc(clickedLocation:withTargetParameters:)
+    static func clickedLocation(name: String, targetParameters: TargetParameters?) {
+        if name.isEmpty {
             Log.error(label: LOG_TAG, "Failed to send click notification, Mbox name must not be empty or nil.")
             return
         }
 
-        var eventData = [TargetConstants.EventDataKeys.MBOX_NAME: mboxName, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true] as [String: Any]
+        var eventData = [TargetConstants.EventDataKeys.MBOX_NAME: name, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true] as [String: Any]
 
         if let targetParametersDict = targetParameters?.asDictionary() {
             eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict

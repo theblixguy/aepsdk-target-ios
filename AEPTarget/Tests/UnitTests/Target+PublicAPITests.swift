@@ -118,7 +118,7 @@ class TargetPublicAPITests: XCTestCase {
             expectation.fulfill()
         }
 
-        Target.displayedLocations(mboxNames: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        Target.displayedLocations(names: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
         wait(for: [expectation], timeout: 1)
     }
 
@@ -143,7 +143,7 @@ class TargetPublicAPITests: XCTestCase {
             expectation.fulfill()
         }
 
-        Target.clickedLocation(mboxName: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        Target.clickedLocation(name: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
         wait(for: [expectation], timeout: 1)
     }
 
