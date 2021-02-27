@@ -43,7 +43,7 @@ public class Target: NSObject, Extension {
 
     public var runtime: ExtensionRuntime
 
-    static var previewManager = TargetPreviewManager()
+    static var previewManager: PreviewManager = TargetPreviewManager()
 
     public required init?(runtime: ExtensionRuntime) {
         self.runtime = runtime

@@ -18,7 +18,7 @@ import XCTest
 class TargetTests: XCTestCase {
     var target: Target!
     var mockRuntime: TestableExtensionRuntime!
-    // var mockPreviewManager = MockTargetPreviewManager()
+    var mockPreviewManager = MockTargetPreviewManager()
 
     var mockMBox = ["mbox1", "mbox2"]
     var mockMBoxJson = ["mbox1": ["state": "state1", "options": [["eventToken": "sometoken"]], "metrics": [["type": "click", "eventToken": "eventToken"]]],
@@ -30,7 +30,7 @@ class TargetTests: XCTestCase {
         cleanUserDefaults()
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
-        // Target.previewManager = mockPreviewManager
+        Target.previewManager = mockPreviewManager
         target.onRegistered()
     }
 
