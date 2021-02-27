@@ -152,6 +152,7 @@ enum TargetConstants {
         static let PROFILE_PARAMETERS = "profileparams"
         // shared sate
         static let TNT_ID = "tntid"
+        static let PREVIEW_INITIATED = "ispreviewinitiated"
     }
 
     enum Identity {
@@ -221,7 +222,6 @@ enum TargetConstants {
                 static let UPGRADE_EVENT = "upgradeevent"
             }
         }
-        static let PREVIEW_INITIATED = "ispreviewinitiated"
     }
 
     enum PreviewManager {
