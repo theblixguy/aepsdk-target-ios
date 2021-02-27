@@ -18,7 +18,7 @@ import XCTest
 class TargetTests: XCTestCase {
     var target: Target!
     var mockRuntime: TestableExtensionRuntime!
-    var mockPreviewManager = MockTargetPreviewManager()
+    // var mockPreviewManager = MockTargetPreviewManager()
 
     var mockMBox = ["mbox1", "mbox2"]
     var mockMBoxJson = ["mbox1": ["state": "state1", "options": [["eventToken": "sometoken"]], "metrics": [["type": "click", "eventToken": "eventToken"]]],
@@ -30,7 +30,7 @@ class TargetTests: XCTestCase {
         cleanUserDefaults()
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
-        target.previewManager = mockPreviewManager
+        // Target.previewManager = mockPreviewManager
         target.onRegistered()
     }
 
@@ -183,7 +183,6 @@ class TargetTests: XCTestCase {
         XCTFail()
     }
 
-<<<<<<< HEAD
     func testResetExperience() {
         let data: [String: Any] = [
             TargetConstants.EventDataKeys.RESET_EXPERIENCE: true,
@@ -309,7 +308,7 @@ class TargetTests: XCTestCase {
             return
         }
         XCTFail()
-=======
+    }
     // MARK: - Target Preview Tests
 
     func testHandleRestartDeeplink() {
@@ -320,7 +319,6 @@ class TargetTests: XCTestCase {
         mockRuntime.simulateComingEvent(event: event)
         XCTAssertTrue(mockPreviewManager.setRestartDeepLinkCalled)
         XCTAssertEqual(mockPreviewManager.restartDeepLink, testRestartDeeplink)
->>>>>>> f0504c8... Mock previewmanager and initial test for Target preview events
     }
 }
 

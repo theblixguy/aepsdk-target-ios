@@ -140,6 +140,10 @@
 		786C00BB25C0D3AB00F26D34 /* TargetPreviewManagerFullscreenMessageDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetPreviewManagerFullscreenMessageDelegate.swift; sourceTree = "<group>"; };
 		786C00DD25C1D95300F26D34 /* TargetPreviewManagerFloatingButtonDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetPreviewManagerFloatingButtonDelegate.swift; sourceTree = "<group>"; };
 		786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TargetTestConstants.swift; sourceTree = "<group>"; };
+<<<<<<< HEAD
+=======
+		786C00F125C4A10A00F26D34 /* MockUrlOpeningService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockUrlOpeningService.swift; sourceTree = "<group>"; };
+>>>>>>> 2eba4fb... Updating tests
 		7885141325532281008E6999 /* Target.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Target.swift; sourceTree = "<group>"; };
 		78851418255322CB008E6999 /* Target+PublicAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Target+PublicAPI.swift"; sourceTree = "<group>"; };
 		7885141D255322D9008E6999 /* Event+Target.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Event+Target.swift"; sourceTree = "<group>"; };
@@ -263,6 +267,19 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+<<<<<<< HEAD
+=======
+		786C00F625C4A19000F26D34 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				786C007625BF40E800F26D34 /* TargetNetworkServiceMock.swift */,
+				786C00F125C4A10A00F26D34 /* MockUrlOpeningService.swift */,
+				7814B2AD25CB625A00841429 /* MockUIService.swift */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
+>>>>>>> 2eba4fb... Updating tests
 		788513FC2552087A008E6999 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
@@ -343,6 +360,10 @@
 				BB8FF0EC2602A705006C80D9 /* IntegrationTests */,
 				BB1DBEAE25D2F5E700DDBA15 /* TestHelpers */,
 				BB0C91602577640200F635B8 /* UnitTests */,
+<<<<<<< HEAD
+=======
+				BB0C915F257763E600F635B8 /* FunctionalTests */,
+>>>>>>> 2eba4fb... Updating tests
 				786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */,
 				78D503152551FCCE00966553 /* Info.plist */,
 				786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */,
@@ -855,6 +876,14 @@
 				92C44A7F25DB0D39000175FB /* AppDelegate.swift in Sources */,
 				92C44A8125DB0D39000175FB /* SceneDelegate.swift in Sources */,
 				92C44A8325DB0D39000175FB /* ContentView.swift in Sources */,
+<<<<<<< HEAD
+=======
+				786C00E325C35EEB00F26D34 /* TargetTestConstants.swift in Sources */,
+				786C006725BA1E8600F26D34 /* TargetPreviewManagerTests.swift in Sources */,
+				786C00F225C4A10A00F26D34 /* MockUrlOpeningService.swift in Sources */,
+				786C007725BF40E800F26D34 /* TargetNetworkServiceMock.swift in Sources */,
+				7814B2AE25CB625A00841429 /* MockUIService.swift in Sources */,
+>>>>>>> 2eba4fb... Updating tests
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
