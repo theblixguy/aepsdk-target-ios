@@ -228,7 +228,7 @@ import Foundation
     /// Set the Target preview URL to be displayed when the preview mode is restarted.
     /// - Parameter deeplink:  the URL which will be set for preview restart
     static func setPreviewRestartDeepLink(_ deeplink: URL) {
-        previewManager.setRestartDeepLink(deeplink)
+        previewManager.setRestartDeepLink(deeplink.absoluteString)
     }
 
     /// Sends a display notification to Target for given prefetched mboxes. This helps Target record location display events.
