@@ -17,6 +17,7 @@ import AEPTarget
 import SwiftUI
 
 struct ContentView: View {
+<<<<<<< HEAD
     @State var thirdPartyId: String = ""
     @State var updatedThirdPartyId: String = ""
     @State var tntId: String = ""
@@ -71,10 +72,7 @@ struct ContentView: View {
                     }.padding(10)
                     
                     Button("Enter Preview") {
-                        fullscreenMessage = ServiceProvider.shared.uiService.createFullscreenMessage(payload: "<html>hello</html>", listener: delegate(), isLocalImageUsed: false)
-                        if let p = fullscreenMessage {
-                            enterPreview(fullscreenMessage: p)
-                        }
+                        enterPreview()
                     }.padding(10)
                 }
             })
@@ -150,43 +148,15 @@ struct ContentView: View {
         Target.setThirdPartyId(updatedThirdPartyId)
     }
 
-    func enterPreview(fullscreenMessage _: FullscreenPresentable) {
-//        // let url = NSURL(string:"http://www.adobe.com")
-//        guard let url = URL(string: "com.adobe.targetpreview://?at_preview_token=yOrxbuHy8B3o80U0bnL8N5b1pDr5x7_lW-haGSc5zt4") else {
-//            return
-//        }
-//        Target.setPreviewRestartDeepLink(deeplink: url)
-//        // ServiceProvider.shared.urlService.openUrl(url)
-//
-
+    func enterPreview() {
         let eventData = ["deeplink": "com.adobe.targetpreview://?at_preview_token=yOrxbuHy8B3o80U0bnL8N5b1pDr5x7_lW-haGSc5zt4"]
         let event = Event(name: "deeplink", type: EventType.genericData, source: EventSource.os, data: eventData)
         MobileCore.dispatch(event: event)
-
-        // fullscreenMessage?.show()
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-    }
-}
-
-class delegate: FullscreenMessageDelegate {
-    func onShow(message _: FullscreenMessage) {
-        print("")
-    }
-
-    func onDismiss(message _: FullscreenMessage) {
-        print("")
-    }
-
-    func overrideUrlLoad(message _: FullscreenMessage, url _: String?) -> Bool {
-        return true
-    }
-
-    func onShowFailure() {
-        print("")
     }
 }
