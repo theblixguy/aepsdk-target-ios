@@ -25,7 +25,7 @@ public class Target: NSObject, Extension {
     }
 
     private var isInPreviewMode: Bool {
-        guard let previewParameters = Target.previewManager.previewParameters, !previewParameters.isEmpty else {
+        guard let previewParameters = previewManager.previewParameters, !previewParameters.isEmpty else {
             return false
         }
         return true
@@ -43,7 +43,7 @@ public class Target: NSObject, Extension {
 
     public var runtime: ExtensionRuntime
 
-    static var previewManager: PreviewManager = TargetPreviewManager()
+    var previewManager: PreviewManager = TargetPreviewManager()
 
     public required init?(runtime: ExtensionRuntime) {
         self.runtime = runtime
@@ -72,11 +72,7 @@ public class Target: NSObject, Extension {
 
     // MARK: - Event Listeners
 
-    private func handle(event: Event) {
-        if let restartDeeplink = event.data?[TargetConstants.EventDataKeys.PREVIEW_RESTART_DEEP_LINK] as? String, let restartDeeplinkUrl = URL(string: restartDeeplink) {
-            Target.setPreviewRestartDeepLink(restartDeeplinkUrl)
-        }
-    }
+    private func handle(event _: Event) {}
 
     private func handleGenericDataOS(event: Event) {
         if let deeplink = event.data?[TargetConstants.EventDataKeys.DEEPLINK] as? String, !deeplink.isEmpty {
@@ -134,6 +130,10 @@ public class Target: NSObject, Extension {
             return
         }
 
+        if let restartDeeplink = event.data?[TargetConstants.EventDataKeys.PREVIEW_RESTART_DEEP_LINK] as? String {
+            previewManager.setRestartDeepLink(restartDeeplink)
+        }
+
         Log.debug(label: Target.LOG_TAG, "Unknown event: \(event)")
     }
 
@@ -162,19 +162,18 @@ public class Target: NSObject, Extension {
             return
         }
 
-        guard let isPreviewEnabled = configSharedState[TargetConstants.Configuration.SharedState.Keys.TARGET_PREVIEW_ENABLED] as? Bool, !isPreviewEnabled else {
+        guard let isPreviewEnabled = configSharedState[TargetConstants.Configuration.SharedState.Keys.TARGET_PREVIEW_ENABLED] as? Bool, isPreviewEnabled else {
             Log.error(label: Target.LOG_TAG, "Target preview is disabled, please change the configuration and try again.")
             return
         }
 
-        // TODO: - Get client code from state once state is merged in.
-        let clientCode = ""
+        let clientCode = targetState.clientCode ?? ""
         guard let deeplinkUrl = URL(string: deeplink) else {
             Log.error(label: Target.LOG_TAG, "Deeplink is not a valid url")
             return
         }
 
-        Target.previewManager.enterPreviewModeWithDeepLink(clientCode: clientCode, deepLink: deeplinkUrl)
+        previewManager.enterPreviewModeWithDeepLink(clientCode: clientCode, deepLink: deeplinkUrl)
     }
 
     /// Handle prefetch content request

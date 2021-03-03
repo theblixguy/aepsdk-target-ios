@@ -26,11 +26,10 @@ class MockTargetPreviewManager: PreviewManager {
         enterPreviewModeWithDeepLinkCalled = true
     }
 
-    var previewConfirmedWithUrlCalled = false
+    static var previewConfirmedWithUrlCalled = false
     var previewConfirmedWithUrlReturnVal = false
-    func previewConfirmedWithUrl(_: URL, message _: FullscreenPresentable, previewLifecycleEventDispatcher _: (Event) -> Void) -> Bool {
-        previewConfirmedWithUrlCalled = true
-        return previewConfirmedWithUrlReturnVal
+    func previewConfirmedWithUrl(_: URL, message _: FullscreenPresentable, previewLifecycleEventDispatcher _: (Event) -> Void) {
+        MockTargetPreviewManager.previewConfirmedWithUrlCalled = true
     }
 
     var fetchWebViewCalled = false

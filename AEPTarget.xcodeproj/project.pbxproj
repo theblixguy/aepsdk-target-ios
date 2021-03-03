@@ -44,9 +44,9 @@
 		925E066A25FAAF1E00489733 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 925E066825FAAF1E00489733 /* LaunchScreen.storyboard */; };
 		925E066D25FAAF1E00489733 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 925E066C25FAAF1E00489733 /* main.m */; };
 		92AE6D0B25D8E31700F46C59 /* TargetDeliveryRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AE6D0A25D8E31700F46C59 /* TargetDeliveryRequestBuilder.swift */; };
-		92BF53E625F362B700403FCD /* TargetPreviewManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */; };
-		92BF53ED25F362BC00403FCD /* TargetTestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */; };
-        926695D125E9EE3E006D2E9F /* MockPreviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926695C125E9EE17006D2E9F /* MockPreviewManager.swift */; };
+		926695D125E9EE3E006D2E9F /* MockPreviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 926695C125E9EE17006D2E9F /* MockPreviewManager.swift */; };
+		92962B7E25EDD01800C8702C /* TargetPreviewManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */; };
+		92962B8525EDD02300C8702C /* TargetTestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */; };
 		92C44A7F25DB0D39000175FB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A7E25DB0D39000175FB /* AppDelegate.swift */; };
 		92C44A8125DB0D39000175FB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8025DB0D39000175FB /* SceneDelegate.swift */; };
 		92C44A8325DB0D39000175FB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8225DB0D39000175FB /* ContentView.swift */; };
@@ -358,6 +358,7 @@
 				BB0C91602577640200F635B8 /* UnitTests */,
 				786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */,
 				78D503152551FCCE00966553 /* Info.plist */,
+				786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */,
 				786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */,
 			);
 			path = Tests;

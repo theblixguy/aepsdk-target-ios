@@ -30,7 +30,7 @@ class TargetTests: XCTestCase {
         cleanUserDefaults()
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
-        Target.previewManager = mockPreviewManager
+        target.previewManager = mockPreviewManager
         target.onRegistered()
     }
 
@@ -316,9 +316,15 @@ class TargetTests: XCTestCase {
         let eventData = [TargetConstants.EventDataKeys.PREVIEW_RESTART_DEEP_LINK: testRestartDeeplink]
         let event = Event(name: "testRestartDeeplinkEvent", type: EventType.target, source: EventSource.requestContent, data: eventData)
         mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: ["target.clientCode": "code_123", "global.privacy": "optedin"], status: .set))
+        target.onRegistered()
         mockRuntime.simulateComingEvent(event: event)
-        XCTAssertTrue(mockPreviewManager.setRestartDeepLinkCalled)
-        XCTAssertEqual(mockPreviewManager.restartDeepLink, testRestartDeeplink)
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestContent"] {
+            eventListener(event)
+            XCTAssertTrue(mockPreviewManager.setRestartDeepLinkCalled)
+            XCTAssertEqual(mockPreviewManager.restartDeepLink, testRestartDeeplink)
+            return
+        }
+        XCTFail()
     }
 }
 
