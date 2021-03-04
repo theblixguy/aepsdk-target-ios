@@ -47,9 +47,9 @@ public class Target: NSObject, Extension {
 
     public func onRegistered() {
         registerListener(type: EventType.target, source: EventSource.requestContent, listener: handleRequestContent)
-        registerListener(type: EventType.target, source: EventSource.requestReset, listener: handle)
+        registerListener(type: EventType.target, source: EventSource.requestReset, listener: handleReset)
         registerListener(type: EventType.target, source: EventSource.requestIdentity, listener: handle)
-        registerListener(type: EventType.configuration, source: EventSource.responseContent, listener: handle)
+        registerListener(type: EventType.configuration, source: EventSource.responseContent, listener: handleConfigurationResponseContent)
         registerListener(type: EventType.genericData, source: EventSource.os, listener: handle)
     }
 
@@ -69,6 +69,16 @@ public class Target: NSObject, Extension {
         print(event)
     }
 
+    private func handleConfigurationResponseContent(_ event: Event) {
+        print(event)
+    }
+
+    private func handleReset(_ event: Event) {
+        if event.isResetExperienceEvent {
+            resetIdentity(event)
+        }
+    }
+
     private func handleRequestContent(_ event: Event) {
         if event.isPrefetchEvent {
             prefetchContent(event)
@@ -86,6 +96,18 @@ public class Target: NSObject, Extension {
         }
 
         Log.debug(label: Target.LOG_TAG, "Unknown event: \(event)")
+    }
+
+    /// Clears all the current identifiers.
+    /// After clearing the identifiers, creates a shared state and dispatches an `EventType#TARGET` `EventSource#REQUEST_RESET` event.
+    /// - Parameter event: an event of type target and  source request content is dispatched by the `EventHub`
+    private func resetIdentity(_ event: Event) {
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing shared state - configuration")
+            return
+        }
+
+        resetIdentity(configurationSharedState: configurationSharedState)
     }
 
     /// Handle prefetch content request
@@ -130,8 +152,8 @@ public class Target: NSObject, Extension {
 
             self.targetState.updateSessionTimestamp()
 
-            if let tntId = response.tntId { self.targetState.updateTntId(tntId) }
-            if let edgeHost = response.edgeHost { self.targetState.updateEdgeHost(edgeHost) }
+            if let tntId = response.tntId { self.setTntId(tntId: tntId, configurationSharedState: configurationSharedState) }
+            if let edgeHost = response.edgeHost { self.setEdgeHost(edgeHost: edgeHost) }
             self.createSharedState(data: self.targetState.generateSharedState(), event: event)
 
             if let mboxes = response.mboxes {
@@ -321,8 +343,13 @@ public class Target: NSObject, Extension {
 
         targetState.updateSessionTimestamp()
 
-        if let tntId = response.tntId { targetState.updateTntId(tntId) }
-        if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing shared state - configuration")
+            return
+        }
+
+        if let tntId = response.tntId { setTntId(tntId: tntId, configurationSharedState: configurationSharedState) }
+        if let edgeHost = response.edgeHost { setEdgeHost(edgeHost: edgeHost) }
         createSharedState(data: targetState.generateSharedState(), event: event)
     }
 
@@ -359,7 +386,7 @@ public class Target: NSObject, Extension {
 
         if newClientCode != targetState.clientCode {
             targetState.updateClientCode(newClientCode)
-            targetState.updateEdgeHost("")
+            setEdgeHost(edgeHost: "")
         }
 
         guard let privacy = configData[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN
@@ -466,5 +493,86 @@ public class Target: NSObject, Extension {
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: DEFAULT_NETWORK_TIMEOUT, readTimeout: DEFAULT_NETWORK_TIMEOUT)
         // stopEvents()
         networkService.connectAsync(networkRequest: request, completionHandler: completionHandler)
+    }
+
+    /// Clears identities including tntId, thirdPartyId, edgeHost, sessionId
+    /// - Parameters:
+    ///     - configurationSharedState: `Dictionary` Configuration shared state
+    private func resetIdentity(configurationSharedState: [String: Any]) {
+        setTntId(tntId: nil, configurationSharedState: configurationSharedState)
+        setThirdPartyIdInternal(thirdPartyId: nil, configurationSharedState: configurationSharedState)
+        setEdgeHost(edgeHost: nil)
+        resetSession()
+    }
+
+    /// Saves the tntId to the Target DataStore or remove its key in the dataStore if the tntId is nil.
+    /// If the tntId ID is changed.
+    /// - Parameters:
+    ///     - tntId: new tntId that needs to be set
+    private func setTntId(tntId: String?, configurationSharedState: [String: Any]) {
+        let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String
+
+        // do not set identifier if privacy is opt-out and the id is not being cleared
+        if privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN, let tntId = tntId, !tntId.isEmpty {
+            Log.debug(label: Target.LOG_TAG, "setTntId - Cannot update Target tntId due to opt out privacy status.")
+            return
+        }
+
+        if tntIdValuesAreEqual(newTntId: tntId, oldTntId: targetState.tntId) {
+            Log.debug(label: Target.LOG_TAG, "setTntId - New tntId value is same as the existing tntId \(String(describing: targetState.tntId)).")
+            return
+        }
+
+        targetState.updateTntId(tntId)
+    }
+
+    /// Saves the thirdPartyId to the Target DataStore or remove its key in the dataStore if the newThirdPartyId is nil
+    /// - Parameters:
+    ///     - thirdPartyId: `String` to  be set
+    private func setThirdPartyIdInternal(thirdPartyId: String?, configurationSharedState: [String: Any]) {
+        let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String
+        if privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN, let thirdPartyId = thirdPartyId, !thirdPartyId.isEmpty {
+            Log.debug(label: Target.LOG_TAG, "setThirdPartyIdInternal - Cannot update Target thirdPartyId due to opt out privacy status.")
+            return
+        }
+
+        if thirdPartyId == targetState.thirdPartyId {
+            Log.debug(label: Target.LOG_TAG, "setThirdPartyIdInternal - New thirdPartyId value is same as the existing thirdPartyId \(String(describing: thirdPartyId))")
+            return
+        }
+
+        targetState.updateThirdPartyId(thirdPartyId)
+    }
+
+    /// Saves the new edge host to local variable and in the dataStore
+    /// - Parameters:
+    ///     - edgeHost: `String` new edge host  to be updated
+    private func setEdgeHost(edgeHost: String?) {
+        if edgeHost == targetState.edgeHost {
+            Log.debug(label: Target.LOG_TAG, "setEdgeHost - New edgeHost value is same as the existing edgeHost \(String(describing: edgeHost))")
+            return
+        }
+
+        targetState.updateEdgeHost(edgeHost)
+    }
+
+    /// Resets current  sessionId and the sessionTimestampInSeconds
+    private func resetSession() {
+        targetState.resetSessionId()
+        targetState.updateSessionTimestamp(reset: true)
+    }
+
+    /// Compares if the given two tntID's are equal. tntId is a concatenation of {tntId}.{tnt_sessionId}
+    /// false is returned when tntID's are different.
+    /// true is returned when tntID's are same.
+    /// - Parameters:
+    ///     - newTntId: new tntId
+    ///     - oldTntId: old tntId
+    private func tntIdValuesAreEqual(newTntId: String?, oldTntId: String?) -> Bool {
+        if newTntId == oldTntId {
+            return true
+        }
+
+        return oldTntId?.split(separator: ".").first?.base ?? oldTntId == newTntId?.split(separator: ".").first?.base ?? newTntId
     }
 }

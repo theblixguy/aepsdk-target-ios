@@ -120,4 +120,12 @@ class TargetPublicAPITests: XCTestCase {
 
         Target.clickedLocation(mboxName: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
     }
+
+    func testResetExperience() throws {
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestReset) { event in
+            XCTAssertTrue(event.isResetExperienceEvent)
+        }
+
+        Target.resetExperience()
+    }
 }

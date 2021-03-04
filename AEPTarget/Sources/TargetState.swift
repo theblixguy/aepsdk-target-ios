@@ -15,34 +15,24 @@ import Foundation
 
 /// Represents the state of the `Target` extension
 class TargetState {
-    private(set) var tntId: String? {
-        didSet {
-            dataStore.set(key: TargetConstants.DataStoreKeys.TNT_ID, value: tntId)
-        }
-    }
-
-    private(set) var edgeHost: String? {
-        didSet {
-            dataStore.set(key: TargetConstants.DataStoreKeys.EDGE_HOST, value: edgeHost)
-        }
-    }
-
-    private(set) var sessionTimestampInSeconds: Int64? {
-        didSet {
-            dataStore.set(key: TargetConstants.DataStoreKeys.SESSION_TIMESTAMP, value: sessionTimestampInSeconds)
-        }
-    }
-
     private(set) var thirdPartyId: String?
+    private(set) var edgeHost: String?
+    private(set) var tntId: String?
+    private(set) var sessionTimestampInSeconds: Int64?
     private(set) var clientCode: String?
     private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
     private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
     private(set) var notifications = [Notification]()
     private(set) var sessionTimeoutInSeconds: Int
+
     private var storedSessionId: String
 
     var sessionId: String {
-        if isSessionExpired() { storedSessionId = UUID().uuidString }
+        if storedSessionId.isEmpty || isSessionExpired() {
+            storedSessionId = UUID().uuidString
+            dataStore.set(key: TargetConstants.DataStoreKeys.SESSION_ID, value: storedSessionId)
+            updateSessionTimestamp()
+        }
         return storedSessionId
     }
 
@@ -59,18 +49,54 @@ class TargetState {
     }
 
     /// Updates the session timestamp of the latest target API call in memory and in the data store
-    func updateSessionTimestamp() {
+    /// - Parameters:
+    ///     - reset: `Bool` value to reset the timestamp to 0 and remove it from datastore
+    func updateSessionTimestamp(reset: Bool = false) {
+        if reset {
+            sessionTimestampInSeconds = 0
+            dataStore.remove(key: TargetConstants.DataStoreKeys.SESSION_TIMESTAMP)
+            return
+        }
         sessionTimestampInSeconds = Date().getUnixTimeInSeconds()
+        dataStore.set(key: TargetConstants.DataStoreKeys.SESSION_TIMESTAMP, value: sessionTimestampInSeconds)
+    }
+
+    /// Remove storedSessionId and remove the key from datastore
+    func resetSessionId() {
+        dataStore.remove(key: TargetConstants.DataStoreKeys.SESSION_ID)
+        storedSessionId = ""
     }
 
     /// Updates the TNT ID in memory and in the data store
-    func updateTntId(_ tntId: String) {
+    func updateTntId(_ tntId: String?) {
         self.tntId = tntId
+
+        if let tntId = tntId, !tntId.isEmpty {
+            dataStore.set(key: TargetConstants.DataStoreKeys.TNT_ID, value: tntId)
+        } else {
+            dataStore.remove(key: TargetConstants.DataStoreKeys.TNT_ID)
+        }
+    }
+
+    /// Updates the Third party Id in memory and in the data store
+    func updateThirdPartyId(_ thirdPartyId: String?) {
+        self.thirdPartyId = thirdPartyId
+
+        if let thirdPartyId = thirdPartyId, !thirdPartyId.isEmpty {
+            dataStore.set(key: TargetConstants.DataStoreKeys.THIRD_PARTY_ID, value: thirdPartyId)
+        } else {
+            dataStore.remove(key: TargetConstants.DataStoreKeys.THIRD_PARTY_ID)
+        }
     }
 
     /// Updates the edge host in memory and in the data store
-    func updateEdgeHost(_ edgeHost: String) {
+    func updateEdgeHost(_ edgeHost: String?) {
         self.edgeHost = edgeHost
+        if let edgeHost = edgeHost, !edgeHost.isEmpty {
+            dataStore.set(key: TargetConstants.DataStoreKeys.EDGE_HOST, value: edgeHost)
+        } else {
+            dataStore.remove(key: TargetConstants.DataStoreKeys.EDGE_HOST)
+        }
     }
 
     /// Updates the client code in memory and in the data store

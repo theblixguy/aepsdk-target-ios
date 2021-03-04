@@ -63,4 +63,10 @@ class TargetEventTests: XCTestCase {
         let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData as [String: Any])
         XCTAssertTrue(event.isLocationClickedEvent)
     }
+
+    func testIsResetExperience() throws {
+        let eventData = [TargetConstants.EventDataKeys.RESET_EXPERIENCE: true] as [String: Any?]
+        let event = Event(name: TargetConstants.EventName.REQUEST_RESET, type: EventType.target, source: EventSource.requestReset, data: eventData as [String: Any])
+        XCTAssertTrue(event.isResetExperienceEvent)
+    }
 }
