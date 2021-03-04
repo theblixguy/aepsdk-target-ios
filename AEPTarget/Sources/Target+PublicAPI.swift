@@ -18,7 +18,8 @@ import Foundation
     /// true if the response content event listener is already registered, false otherwise
     private static var isResponseListenerRegister: Bool = false
     /// `Dictionary` to keep track of pending target request
-    private static var pendingTargetRequest: [String: TargetRequest] = [:]
+    @nonobjc
+    private static var pendingTargetRequest: ThreadSafeDictionary<String, TargetRequest> = ThreadSafeDictionary()
 
     /// Prefetch multiple Target mboxes simultaneously.
     ///
@@ -83,7 +84,7 @@ import Foundation
     @objc(retrieveLocationContent:withParameters:)
     static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters?) {
         if requests.isEmpty {
-            Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_REQUEST_MESSAGE)")
+            Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_EMPTY_REQUEST_MESSAGE)")
             return
         }
 
@@ -109,7 +110,7 @@ import Foundation
 
             targetRequestsArray.append(requestDictionary)
         }
-        
+
         if targetRequestsArray.isEmpty {
             Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request is empty")
             return
@@ -303,12 +304,12 @@ import Foundation
         }
 
         let searchId = "\(id)-\(responsePairId)"
-        guard let targetRequest = pendingTargetRequest[searchId] else {
+
+        // Remove and use the target request from the map
+        guard let targetRequest = pendingTargetRequest.removeValue(forKey: searchId) else {
             Log.error(label: LOG_TAG, "Missing target request for the \(searchId)")
             return
         }
-        // Remove the target request from the map
-        pendingTargetRequest.removeValue(forKey: searchId)
 
         guard let callback = targetRequest.contentCallback else {
             Log.warning(label: LOG_TAG, "Missing callback for target request with pair id the \(responsePairId)")
