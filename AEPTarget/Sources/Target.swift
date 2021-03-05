@@ -46,9 +46,9 @@ public class Target: NSObject, Extension {
 
     public func onRegistered() {
         registerListener(type: EventType.target, source: EventSource.requestContent, listener: handleRequestContent)
-        registerListener(type: EventType.target, source: EventSource.requestReset, listener: handle)
+        registerListener(type: EventType.target, source: EventSource.requestReset, listener: handleReset)
         registerListener(type: EventType.target, source: EventSource.requestIdentity, listener: handle)
-        registerListener(type: EventType.configuration, source: EventSource.responseContent, listener: handle)
+        registerListener(type: EventType.configuration, source: EventSource.responseContent, listener: handleConfigurationResponseContent)
         registerListener(type: EventType.genericData, source: EventSource.os, listener: handle)
     }
 
@@ -68,6 +68,16 @@ public class Target: NSObject, Extension {
         print(event)
     }
 
+    private func handleConfigurationResponseContent(_ event: Event) {
+        print(event)
+    }
+
+    private func handleReset(_ event: Event) {
+        if event.isResetExperienceEvent {
+            resetIdentity(event)
+        }
+    }
+
     private func handleRequestContent(_ event: Event) {
         if event.isPrefetchEvent {
             prefetchContent(event)
@@ -85,6 +95,18 @@ public class Target: NSObject, Extension {
         }
 
         Log.debug(label: Target.LOG_TAG, "Unknown event: \(event)")
+    }
+
+    /// Clears all the current identifiers.
+    /// After clearing the identifiers, creates a shared state and dispatches an `EventType#TARGET` `EventSource#REQUEST_RESET` event.
+    /// - Parameter event: an event of type target and  source request content is dispatched by the `EventHub`
+    private func resetIdentity(_ event: Event) {
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            Log.warning(label: Target.LOG_TAG, "Missing shared state - configuration")
+            return
+        }
+
+        resetIdentity(configurationSharedState: configurationSharedState)
     }
 
     /// Handle prefetch content request
@@ -107,6 +129,9 @@ public class Target: NSObject, Extension {
             return
         }
 
+        // Update session timeout
+        updateSessionTimeout(configuration: configurationSharedState)
+
         let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
         let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
 
@@ -115,7 +140,7 @@ public class Target: NSObject, Extension {
             return
         }
 
-        sendTargetRequest(event, prefetchRequests: targetPrefetchArray, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
+        let error = sendTargetRequest(event, prefetchRequests: targetPrefetchArray, targetParameters: targetParameters, configData: configurationSharedState, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
 
             guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
                 self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
@@ -129,7 +154,7 @@ public class Target: NSObject, Extension {
 
             self.targetState.updateSessionTimestamp()
 
-            if let tntId = response.tntId { self.targetState.updateTntId(tntId) }
+            if let tntId = response.tntId { self.setTntId(tntId: tntId, configurationSharedState: configurationSharedState) }
             if let edgeHost = response.edgeHost { self.targetState.updateEdgeHost(edgeHost) }
             self.createSharedState(data: self.targetState.generateSharedState(), event: event)
 
@@ -145,6 +170,10 @@ public class Target: NSObject, Extension {
             // TODO: removeDuplicateLoadedMboxes
             // TODO: notifications.clear()
             self.startEvents()
+        }
+
+        if let err = error {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: err)
         }
     }
 
@@ -172,6 +201,9 @@ public class Target: NSObject, Extension {
             Log.error(label: Target.LOG_TAG, "Location displayed unsuccessful, configuration is nil")
             return
         }
+
+        // Update session timeout
+        updateSessionTimeout(configuration: configuration)
 
         // Check whether request can be sent
         if let error = prepareForTargetRequest(configData: configuration) {
@@ -207,8 +239,12 @@ public class Target: NSObject, Extension {
                 return
             }
 
-            sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState, propertyToken: nil) { connection in
+            let error = sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState, propertyToken: nil) { connection in
                 self.processNotificationResponse(event: event, connection: connection)
+            }
+
+            if let err = error {
+                Log.warning(label: Target.LOG_TAG, err)
             }
         }
     }
@@ -222,7 +258,7 @@ public class Target: NSObject, Extension {
     /// - If the clicked token is empty or nil for the loaded mbox.
     private func clickedLocation(_ event: Event) {
         if isInPreviewMode() {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target location clicked notification can't be sent while in preview mode")
+            Log.warning(label: Target.LOG_TAG, "Target location clicked notification can't be sent while in preview mode")
             return
         }
 
@@ -273,6 +309,9 @@ public class Target: NSObject, Extension {
             return
         }
 
+        // Update session timeout
+        updateSessionTimeout(configuration: configuration)
+
         // bail out if the target configuration is not available or if the privacy is opted-out
         if let error = prepareForTargetRequest(configData: configuration) {
             Log.error(label: Target.LOG_TAG, TargetError.ERROR_CLICK_NOTIFICATION_NOT_SENT + error)
@@ -290,8 +329,12 @@ public class Target: NSObject, Extension {
             return
         }
 
-        sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
+        let error = sendTargetRequest(event, targetParameters: event.targetParameters, configData: configuration, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
             self.processNotificationResponse(event: event, connection: connection)
+        }
+
+        if let err = error {
+            Log.warning(label: Target.LOG_TAG, err)
         }
     }
 
@@ -304,23 +347,28 @@ public class Target: NSObject, Extension {
     private func processNotificationResponse(event: Event, connection: HttpConnection) {
         if connection.responseCode != 200 {
             targetState.clearNotifications()
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
+            Log.debug(label: Target.LOG_TAG, "Errors returned in Target response with response code: \(String(describing: connection.responseCode))")
         }
 
         guard let data = connection.data, let responseDict = try? JSONDecoder().decode([String: AnyCodable].self, from: data), let dict: [String: Any] = AnyCodable.toAnyDictionary(dictionary: responseDict) else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
+            Log.debug(label: Target.LOG_TAG, "Target response parser initialization failed")
             return
         }
         let response = DeliveryResponse(responseJson: dict)
 
         if let error = response.errorMessage {
             targetState.clearNotifications()
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Errors returned in Target response: \(error)")
+            Log.debug(label: Target.LOG_TAG, "Errors returned in Target response: \(error)")
         }
 
         targetState.updateSessionTimestamp()
 
-        if let tntId = response.tntId { targetState.updateTntId(tntId) }
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            Log.debug(label: Target.LOG_TAG, "Missing shared state - configuration")
+            return
+        }
+
+        if let tntId = response.tntId { setTntId(tntId: tntId, configurationSharedState: configurationSharedState) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
         createSharedState(data: targetState.generateSharedState(), event: event)
     }
@@ -428,7 +476,7 @@ public class Target: NSObject, Extension {
         return lifecycleContextData
     }
 
-    private func sendTargetRequest(_ event: Event,
+    private func sendTargetRequest(_: Event,
                                    batchRequests _: [TargetRequest]? = nil,
                                    prefetchRequests: [TargetPrefetch]? = nil,
                                    targetParameters: TargetParameters? = nil,
@@ -436,7 +484,7 @@ public class Target: NSObject, Extension {
                                    lifecycleData: [String: Any]? = nil,
                                    identityData: [String: Any]? = nil,
                                    propertyToken: String? = nil,
-                                   completionHandler: ((HttpConnection) -> Void)?)
+                                   completionHandler: ((HttpConnection) -> Void)?) -> String?
     {
         let tntId = targetState.tntId
         let thirdPartyId = targetState.thirdPartyId
@@ -445,25 +493,102 @@ public class Target: NSObject, Extension {
         let propToken = propertyToken != nil ? propertyToken : (configData[TargetConstants.Configuration.SharedState.Keys.TARGET_PROPERTY_TOKEN] as? String ?? "")
 
         guard let requestJson = DeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propToken)?.toJSON() else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Failed to generate request parameter(JSON) for target delivery API call")
-            return
+            return "Failed to generate request parameter(JSON) for target delivery API call"
         }
 
         let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
 
         let targetServer = configData[TargetConstants.Configuration.SharedState.Keys.TARGET_SERVER] as? String
         guard let clientCode = configData[TargetConstants.Configuration.SharedState.Keys.TARGET_CLIENT_CODE] as? String else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing client code")
-            return
+            return "Missing client code"
         }
 
         guard let url = URL(string: generateTargetDeliveryURL(targetServer: targetServer, clientCode: clientCode)) else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Failed to generate the url for target API call")
-            return
+            return "Failed to generate the url for target API call"
         }
         // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: DEFAULT_NETWORK_TIMEOUT, readTimeout: DEFAULT_NETWORK_TIMEOUT)
         // stopEvents()
         networkService.connectAsync(networkRequest: request, completionHandler: completionHandler)
+        return nil
+    }
+
+    /// Clears identities including tntId, thirdPartyId, edgeHost, sessionId
+    /// - Parameters:
+    ///     - configurationSharedState: `Dictionary` Configuration shared state
+    private func resetIdentity(configurationSharedState: [String: Any]) {
+        setTntId(tntId: nil, configurationSharedState: configurationSharedState)
+        setThirdPartyIdInternal(thirdPartyId: nil, configurationSharedState: configurationSharedState)
+        targetState.updateEdgeHost(nil)
+        resetSession()
+    }
+
+    /// Saves the tntId to the Target DataStore or remove its key in the dataStore if the tntId is nil.
+    /// If the tntId ID is changed.
+    /// - Parameters:
+    ///     - tntId: new tntId that needs to be set
+    private func setTntId(tntId: String?, configurationSharedState: [String: Any]) {
+        let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String
+
+        // do not set identifier if privacy is opt-out and the id is not being cleared
+        if privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_OUT, let tntId = tntId, !tntId.isEmpty {
+            Log.debug(label: Target.LOG_TAG, "setTntId - Cannot update Target tntId due to opt out privacy status.")
+            return
+        }
+
+        if tntIdValuesAreEqual(newTntId: tntId, oldTntId: targetState.tntId) {
+            Log.debug(label: Target.LOG_TAG, "setTntId - New tntId value is same as the existing tntId \(String(describing: targetState.tntId)).")
+            return
+        }
+
+        targetState.updateTntId(tntId)
+    }
+
+    /// Saves the thirdPartyId to the Target DataStore or remove its key in the dataStore if the newThirdPartyId is nil
+    /// - Parameters:
+    ///     - thirdPartyId: `String` to  be set
+    private func setThirdPartyIdInternal(thirdPartyId: String?, configurationSharedState: [String: Any]) {
+        let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String
+        if privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_OUT, let thirdPartyId = thirdPartyId, !thirdPartyId.isEmpty {
+            Log.debug(label: Target.LOG_TAG, "setThirdPartyIdInternal - Cannot update Target thirdPartyId due to opt out privacy status.")
+            return
+        }
+
+        if thirdPartyId == targetState.thirdPartyId {
+            Log.debug(label: Target.LOG_TAG, "setThirdPartyIdInternal - New thirdPartyId value is same as the existing thirdPartyId \(String(describing: thirdPartyId))")
+            return
+        }
+
+        targetState.updateThirdPartyId(thirdPartyId)
+    }
+
+    /// Resets current  sessionId and the sessionTimestampInSeconds
+    private func resetSession() {
+        targetState.resetSessionId()
+        targetState.updateSessionTimestamp(reset: true)
+    }
+
+    /// Compares if the given two tntID's are equal. tntId is a concatenation of {tntId}.{tnt_sessionId}
+    /// false is returned when tntID's are different.
+    /// true is returned when tntID's are same.
+    /// - Parameters:
+    ///     - newTntId: new tntId
+    ///     - oldTntId: old tntId
+    private func tntIdValuesAreEqual(newTntId: String?, oldTntId: String?) -> Bool {
+        if newTntId == oldTntId {
+            return true
+        }
+
+        if let oldTntId = oldTntId, let newTntId = newTntId {
+            let oldId = String(oldTntId.split(separator: ".").first ?? Substring(oldTntId))
+            let newId = String(newTntId.split(separator: ".").first ?? Substring(newTntId))
+            return oldId == newId
+        }
+
+        return false
+    }
+
+    private func updateSessionTimeout(configuration: [String: Any]) {
+        targetState.sessionTimeoutInSeconds = configuration[TargetConstants.Configuration.SharedState.Keys.TARGET_SESSION_TIMEOUT] as? Int ?? TargetConstants.DEFAULT_SESSION_TIMEOUT
     }
 }

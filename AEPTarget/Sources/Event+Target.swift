@@ -38,4 +38,9 @@ extension Event {
     var isLocationClickedEvent: Bool {
         return data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] as? Bool ?? false
     }
+
+    /// Returns true if this event is a prefetch request event
+    var isResetExperienceEvent: Bool {
+        return data?[TargetConstants.EventDataKeys.RESET_EXPERIENCE] as? Bool ?? false
+    }
 }

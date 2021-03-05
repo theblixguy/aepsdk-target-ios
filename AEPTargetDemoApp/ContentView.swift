@@ -27,6 +27,10 @@ struct ContentView: View {
             Button("Location clicked") {
                 locationClicked()
             }.padding(10)
+
+            Button("Reset Experience") {
+                resetExperience()
+            }.padding(10)
         }
     }
 
@@ -46,6 +50,10 @@ struct ContentView: View {
 
     func locationClicked() {
         Target.clickedLocation(mboxName: "aep-loc-1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
+    }
+
+    func resetExperience() {
+        Target.resetExperience()
     }
 }
 

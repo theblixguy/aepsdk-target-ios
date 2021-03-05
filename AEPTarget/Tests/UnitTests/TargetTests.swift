@@ -130,6 +130,31 @@ class TargetTests: XCTestCase {
         }
         XCTFail()
     }
+
+    func testResetExperience() {
+        let data: [String: Any] = [
+            TargetConstants.EventDataKeys.RESET_EXPERIENCE: true,
+        ]
+
+        // Update state with mocks
+        target.targetState.updateSessionTimestamp()
+        target.targetState.updateEdgeHost("mockedge")
+        target.targetState.updateTntId("sometnt")
+        target.targetState.updateThirdPartyId("somehtirdparty")
+
+        let event = Event(name: "", type: "", source: "", data: data)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestReset"] {
+            eventListener(event)
+            XCTAssertNil(target.targetState.edgeHost)
+            XCTAssertTrue(target.targetState.sessionTimestampInSeconds == 0)
+            XCTAssertNil(target.targetState.thirdPartyId)
+            XCTAssertNotNil(target.targetState.sessionId)
+            return
+        }
+        XCTFail()
+    }
 }
 
 private class MockNetworkService: Networking {
