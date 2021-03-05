@@ -10,7 +10,6 @@
  governing permissions and limitations under the License.
  */
 
-import AEPIdentity
 import AEPServices
 import Foundation
 
@@ -138,9 +137,26 @@ enum DeliveryRequestBuilder {
         return mboxParametersCopy
     }
 
-    private static func generateTargetIDsBy(tntid: String?, thirdPartyId: String?, identitySharedState: [String: Any]?) -> TargetIDs? {
-        let customerIds = identitySharedState?[TargetConstants.Identity.SharedState.Keys.VISITOR_IDS_LIST] as? [CustomIdentity]
-        return TargetIDs(tntId: tntid, thirdPartyId: thirdPartyId, marketingCloudVisitorId: identitySharedState?[TargetConstants.Identity.SharedState.Keys.VISITOR_ID_MID] as? String, customerIds: CustomerID.from(customIdentities: customerIds))
+    /// Creates `TargetIDs` with the given tntId, thirdPartyId and the Identity's shared states
+    /// - Parameters:
+    ///   - tntid: `String` tnt id
+    ///   - thirdPartyId: `String` third party id
+    ///   - identitySharedState: `Identity` context  data
+    /// - Returns: `TargetIDs` object
+    static func generateTargetIDsBy(tntid: String?, thirdPartyId: String?, identitySharedState: [String: Any]?) -> TargetIDs? {
+        var customerIds: [CustomerID]?
+        if let visitorIds = identitySharedState?[TargetConstants.Identity.SharedState.Keys.VISITOR_IDS_LIST] as? [[String: Any]] {
+            for visitorId in visitorIds {
+                if let id = visitorId[TargetConstants.Identity.SharedState.Keys.VISITORID_ID] as? String,
+                   let code = visitorId[TargetConstants.Identity.SharedState.Keys.VISITORID_TYPE] as? String,
+                   let authenticatedState = visitorId[TargetConstants.Identity.SharedState.Keys.VISITORID_AUTHENTICATION_STATE] as? Int
+                {
+                    if customerIds == nil { customerIds = [CustomerID]() }
+                    customerIds?.append(CustomerID(id: id, integrationCode: code, authenticatedState: AuthenticatedState.from(state: authenticatedState)))
+                }
+            }
+        }
+        return TargetIDs(tntId: tntid, thirdPartyId: thirdPartyId, marketingCloudVisitorId: identitySharedState?[TargetConstants.Identity.SharedState.Keys.VISITOR_ID_MID] as? String, customerIds: customerIds)
     }
 
     private static func generateExperienceCloudInfoBy(identitySharedState: [String: Any]?) -> ExperienceCloudInfo {

@@ -163,6 +163,9 @@ enum TargetConstants {
                 static let VISITOR_ID_BLOB = "blob"
                 static let VISITOR_ID_LOCATION_HINT = "locationhint"
                 static let VISITOR_IDS_LIST = "visitoridslist"
+                static let VISITORID_ID = "id"
+                static let VISITORID_TYPE = "id_type"
+                static let VISITORID_AUTHENTICATION_STATE = "authentication_state"
                 static let ADVERTISING_IDENTIFIER = "advertisingidentifier"
             }
         }

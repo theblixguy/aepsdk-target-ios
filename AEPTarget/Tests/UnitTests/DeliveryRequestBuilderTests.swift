@@ -16,6 +16,139 @@
 import XCTest
 
 class DeliveryRequestBuilderTests: XCTestCase {
+    func test_generateTargetIDsBy_with_vids() {
+        let EXPECTED_TARGET_IDS = """
+            {
+              "tntId": "tntid_1",
+              "thirdPartyId": "thirdPartyId_1",
+              "marketingCloudVisitorId": "mid_001",
+              "customerIds": [
+                {
+                  "authenticatedState": "authenticated",
+                  "id": "vid_id_1",
+                  "integrationCode": "vid_type_1"
+                },
+                {
+                  "authenticatedState": "unknown",
+                  "id": "vid_id_2",
+                  "integrationCode": "vid_type_2"
+                }
+              ]
+            }
+        """
+        if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
+               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+               identitySharedState: [
+                   "mid": "mid_001",
+                   "visitoridslist": [
+                       [
+                           "id": "vid_id_1",
+                           "id_type": "vid_type_1",
+                           "authentication_state": 1,
+                       ],
+                       [
+                           "id": "vid_id_2",
+                           "id_type": "vid_type_2",
+                           "authentication_state": 0,
+                       ],
+                   ],
+               ]
+           )
+        {
+            XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
+            return
+        }
+        XCTFail()
+    }
+
+    func test_generateTargetIDsBy_with_vid_missing_keys() {
+        let EXPECTED_TARGET_IDS = """
+            {
+              "tntId": "tntid_1",
+              "thirdPartyId": "thirdPartyId_1",
+              "marketingCloudVisitorId": "mid_001",
+              "customerIds": [
+                {
+                  "authenticatedState": "authenticated",
+                  "id": "vid_id_1",
+                  "integrationCode": "vid_type_1"
+                }
+              ]
+            }
+        """
+        if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
+               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+               identitySharedState: [
+                   "mid": "mid_001",
+                   "visitoridslist": [
+                       [
+                           "id": "vid_id_1",
+                           "id_type": "vid_type_1",
+                           "authentication_state": 1,
+                       ],
+                       [
+                           "id": "vid_id_2",
+                           "authentication_state": 0,
+                       ],
+                   ],
+               ]
+           )
+        {
+            XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
+            return
+        }
+        XCTFail()
+    }
+
+    func test_generateTargetIDsBy_without_vid() {
+        let EXPECTED_TARGET_IDS = """
+            {
+              "tntId": "tntid_1",
+              "thirdPartyId": "thirdPartyId_1",
+              "marketingCloudVisitorId": "mid_001"
+            }
+        """
+        if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
+               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+               identitySharedState: [
+                   "mid": "mid_001",
+               ]
+           )
+        {
+            XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
+            return
+        }
+        XCTFail()
+    }
+
+    func test_generateTargetIDsBy_without_tntId() {
+        let EXPECTED_TARGET_IDS = """
+            {
+              "thirdPartyId": "thirdPartyId_1",
+              "marketingCloudVisitorId": "mid_001"
+            }
+        """
+        if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
+               tntid: nil, thirdPartyId: "thirdPartyId_1",
+               identitySharedState: [
+                   "mid": "mid_001",
+               ]
+           )
+        {
+            XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
+            return
+        }
+        XCTFail()
+    }
+
     func testBuild_Prefetch() {
         ServiceProvider.shared.systemInfoService = MockedSystemInfoService()
         let request = DeliveryRequestBuilder.build(
@@ -47,15 +180,15 @@ class DeliveryRequestBuilderTests: XCTestCase {
         )
 
         if let data = EXPECTED_PREFETCH_JSON.data(using: .utf8),
-           let jsonArray = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
            let result = request?.asDictionary()
         {
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["id"] as! [String: Any]).isEqual(to: result["id"] as! [String: Any]))
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["experienceCloud"] as! [String: Any]).isEqual(to: result["experienceCloud"] as! [String: Any]))
-            var context = result["context"] as! [String: Any]
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["id"] as? [String: Any] ?? [String: Any]()).isEqual(to: result["id"] as? [String: Any] ?? [String: Any]()))
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["experienceCloud"] as? [String: Any] ?? [String: Any]()).isEqual(to: result["experienceCloud"] as? [String: Any] ?? [String: Any]()))
+            var context = result["context"] as? [String: Any] ?? [String: Any]()
             context["timeOffsetInMinutes"] = 0
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["context"] as! [String: Any]).isEqual(to: context))
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["prefetch"] as! [String: Any]).isEqual(to: result["prefetch"] as! [String: Any]))
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["context"] as? [String: Any] ?? [String: Any]()).isEqual(to: context))
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["prefetch"] as? [String: Any] ?? [String: Any]()).isEqual(to: result["prefetch"] as? [String: Any] ?? [String: Any]()))
             return
         }
 
@@ -92,18 +225,18 @@ class DeliveryRequestBuilderTests: XCTestCase {
         )
 
         if let data = EXPECTED_NOTIFICATION_JSON.data(using: .utf8),
-           let jsonArray = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
            let result = request?.asDictionary()
         {
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["id"] as! [String: Any]).isEqual(to: result["id"] as! [String: Any]))
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["experienceCloud"] as! [String: Any]).isEqual(to: result["experienceCloud"] as! [String: Any]))
-            var context = result["context"] as! [String: Any]
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["id"] as? [String: Any] ?? [String: Any]()).isEqual(to: result["id"] as? [String: Any] ?? [String: Any]()))
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["experienceCloud"] as? [String: Any] ?? [String: Any]()).isEqual(to: result["experienceCloud"] as? [String: Any] ?? [String: Any]()))
+            var context = result["context"] as? [String: Any] ?? [String: Any]()
             context["timeOffsetInMinutes"] = 0
-            XCTAssertTrue(NSDictionary(dictionary: jsonArray["context"] as! [String: Any]).isEqual(to: context))
+            XCTAssertTrue(NSDictionary(dictionary: jsonDictionary["context"] as? [String: Any] ?? [String: Any]()).isEqual(to: context))
 
-            let arrayA = NSSet(array: jsonArray["notifications"] as! [[String: Any]])
-            let arrayB = NSSet(array: result["notifications"] as! [[String: Any]])
-            XCTAssertTrue(arrayA.isEqual(to: arrayB as! Set<AnyHashable>))
+            let arrayA = NSSet(array: jsonDictionary["notifications"] as? [[String: Any]] ?? [[String: Any]]())
+            let arrayB = NSSet(array: result["notifications"] as? [[String: Any]] ?? [[String: Any]]())
+            XCTAssertTrue(arrayA.isEqual(to: arrayB as? Set<AnyHashable> ?? Set<AnyHashable>()))
 
             return
         }
