@@ -156,7 +156,11 @@ import Foundation
             return
         }
 
-        let eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true, TargetConstants.EventDataKeys.TARGET_PARAMETERS: targetParameters ?? TargetParameters()] as [String: Any]
+        var eventData = [TargetConstants.EventDataKeys.MBOX_NAMES: mboxNames, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any]
+
+        if let targetParametersDict = targetParameters?.asDictionary() {
+            eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict
+        }
 
         let event = Event(name: TargetConstants.EventName.LOCATIONS_DISPLAYED, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)
@@ -178,8 +182,8 @@ import Foundation
 
         var eventData = [TargetConstants.EventDataKeys.MBOX_NAME: mboxName, TargetConstants.EventDataKeys.IS_LOCATION_CLICKED: true] as [String: Any]
 
-        if let targetParams = targetParameters {
-            eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParams
+        if let targetParametersDict = targetParameters?.asDictionary() {
+            eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict
         }
 
         let event = Event(name: TargetConstants.EventName.LOCATION_CLICKED, type: EventType.target, source: EventSource.requestContent, data: eventData)

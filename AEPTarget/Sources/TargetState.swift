@@ -23,7 +23,7 @@ class TargetState {
     private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
     private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
     private(set) var notifications = [Notification]()
-    private(set) var sessionTimeoutInSeconds: Int
+    var sessionTimeoutInSeconds: Int
 
     private var storedSessionId: String
 
@@ -46,6 +46,10 @@ class TargetState {
         sessionTimestampInSeconds = dataStore.getLong(key: TargetConstants.DataStoreKeys.SESSION_TIMESTAMP)
         storedSessionId = dataStore.getString(key: TargetConstants.DataStoreKeys.SESSION_ID) ?? UUID().uuidString
         sessionTimeoutInSeconds = TargetConstants.DEFAULT_SESSION_TIMEOUT
+    }
+
+    func updateSessionTimeoutInSeconds(timeout: Int) {
+        sessionTimeoutInSeconds = timeout
     }
 
     /// Updates the session timestamp of the latest target API call in memory and in the data store
@@ -91,6 +95,10 @@ class TargetState {
 
     /// Updates the edge host in memory and in the data store
     func updateEdgeHost(_ edgeHost: String?) {
+        if edgeHost == self.edgeHost {
+            Log.debug(label: Target.LOG_TAG, "setEdgeHost - New edgeHost value is same as the existing edgeHost \(String(describing: edgeHost))")
+            return
+        }
         self.edgeHost = edgeHost
         if let edgeHost = edgeHost, !edgeHost.isEmpty {
             dataStore.set(key: TargetConstants.DataStoreKeys.EDGE_HOST, value: edgeHost)

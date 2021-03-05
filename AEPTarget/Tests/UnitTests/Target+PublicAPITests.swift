@@ -91,41 +91,65 @@ class TargetPublicAPITests: XCTestCase {
     }
 
     func testLocationDisplayed() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request content event")
+        expectation.assertForOverFulfill = true
         EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
             guard let eventData = event.data, let mboxes = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String],
                   let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
             else {
+                XCTFail("Event data is nil")
+                expectation.fulfill()
                 return
             }
-            XCTAssertTrue(event.isLocationsDisplayedEvent)
+            let isLocationDisplayed = eventData[TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED] as? Bool ?? false
+            XCTAssertTrue(isLocationDisplayed)
             XCTAssertTrue(mboxes.contains("Drink_1"))
             XCTAssertTrue(mboxes.contains("Drink_2"))
             XCTAssertEqual("Smith", parameters.profileParameters?["name"])
+            expectation.fulfill()
         }
 
         Target.displayedLocations(mboxNames: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        wait(for: [expectation], timeout: 1)
     }
 
     func testLocationClicked() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request content event")
+        expectation.assertForOverFulfill = true
         EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
             guard let eventData = event.data, let mbox = eventData[TargetConstants.EventDataKeys.MBOX_NAME] as? String,
                   let parameters = TargetParameters.from(dictionary: eventData["targetparams"] as? [String: Any])
             else {
+                XCTFail("Event data is nil")
+                expectation.fulfill()
                 return
             }
-            XCTAssertTrue(event.isLocationClickedEvent)
+            let isLocationClicked = eventData[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] as? Bool ?? false
+            XCTAssertTrue(isLocationClicked)
             XCTAssertTrue(mbox == "Drink_1")
             XCTAssertEqual("Smith", parameters.profileParameters?["name"])
+            expectation.fulfill()
         }
 
         Target.clickedLocation(mboxName: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        wait(for: [expectation], timeout: 1)
     }
 
     func testResetExperience() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request reset event")
+        expectation.assertForOverFulfill = true
         EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestReset) { event in
-            XCTAssertTrue(event.isResetExperienceEvent)
+            guard let eventData = event.data else {
+                XCTFail("Event data is nil")
+                expectation.fulfill()
+                return
+            }
+            let isResetExperience = eventData["resetexperience"] as? Bool ?? false
+            XCTAssertTrue(isResetExperience)
+            expectation.fulfill()
         }
 
         Target.resetExperience()
+        wait(for: [expectation], timeout: 1)
     }
 }

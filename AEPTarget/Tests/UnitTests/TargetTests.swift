@@ -135,6 +135,13 @@ class TargetTests: XCTestCase {
         let data: [String: Any] = [
             TargetConstants.EventDataKeys.RESET_EXPERIENCE: true,
         ]
+
+        // Update state with mocks
+        target.targetState.updateSessionTimestamp()
+        target.targetState.updateEdgeHost("mockedge")
+        target.targetState.updateTntId("sometnt")
+        target.targetState.updateThirdPartyId("somehtirdparty")
+
         let event = Event(name: "", type: "", source: "", data: data)
         mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
         target.onRegistered()
