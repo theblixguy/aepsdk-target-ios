@@ -47,7 +47,7 @@ public class Target: NSObject, Extension {
     public func onRegistered() {
         registerListener(type: EventType.target, source: EventSource.requestContent, listener: handleRequestContent)
         registerListener(type: EventType.target, source: EventSource.requestReset, listener: handleReset)
-        registerListener(type: EventType.target, source: EventSource.requestIdentity, listener: handle)
+        registerListener(type: EventType.target, source: EventSource.requestIdentity, listener: handleRequestIdentity)
         registerListener(type: EventType.configuration, source: EventSource.responseContent, listener: handleConfigurationResponseContent)
         registerListener(type: EventType.genericData, source: EventSource.os, listener: handle)
     }
@@ -68,8 +68,24 @@ public class Target: NSObject, Extension {
         print(event)
     }
 
+    private func handleRequestIdentity(_ event: Event) {
+        if let eventData = event.data as [String: Any]?, let thirdPartyId = eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String {
+            setThirdPartyId(thirdPartyId: thirdPartyId, event: event, eventData: eventData)
+        } else {
+            dispatchRequestIdentityResponse(triggerEvent: event)
+        }
+    }
+
     private func handleConfigurationResponseContent(_ event: Event) {
-        print(event)
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            Log.warning(label: Target.LOG_TAG, "Missing shared state - configuration")
+            return
+        }
+        guard let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN else {
+            resetIdentity(configurationSharedState: configurationSharedState)
+            self.createSharedState(data: self.targetState.generateSharedState(), event: event)
+            return
+        }
     }
 
     private func handleReset(_ event: Event) {
@@ -378,6 +394,17 @@ public class Target: NSObject, Extension {
         dispatch(event: triggerEvent.createResponseEvent(name: TargetConstants.EventName.PREFETCH_RESPOND, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.PREFETCH_ERROR: errorMessage]))
     }
 
+    private func dispatchRequestIdentityResponse(triggerEvent: Event) {
+        var eventData: [String: Any] = [:]
+        if let thirdPartyId = targetState.thirdPartyId {
+            eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] = thirdPartyId
+        }
+        if let tntId = targetState.tntId {
+            eventData[TargetConstants.EventDataKeys.TNT_ID] = tntId
+        }
+        dispatch(event: triggerEvent.createResponseEvent(name: TargetConstants.EventName.PREFETCH_RESPOND, type: EventType.target, source: EventSource.responseIdentity, data: eventData))
+    }
+
     private func generateTargetDeliveryURL(targetServer: String?, clientCode: String) -> String {
         if let targetServer = targetServer {
             return String(format: TargetConstants.DELIVERY_API_URL_BASE, targetServer, clientCode, targetState.sessionId)
@@ -521,6 +548,19 @@ public class Target: NSObject, Extension {
         setThirdPartyIdInternal(thirdPartyId: nil, configurationSharedState: configurationSharedState)
         targetState.updateEdgeHost(nil)
         resetSession()
+    }
+
+    /// Saves the third party Id
+    /// - Parameters:
+    ///     - event: event which has the third party Id in event data
+    private func setThirdPartyId(thirdPartyId: String, event: Event, eventData: [String: Any]) {
+        guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
+            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing shared state - configuration")
+            return
+        }
+
+        setThirdPartyIdInternal(thirdPartyId: thirdPartyId, configurationSharedState: configurationSharedState)
+        createSharedState(data: eventData, event: event)
     }
 
     /// Saves the tntId to the Target DataStore or remove its key in the dataStore if the tntId is nil.

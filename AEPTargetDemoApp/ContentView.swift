@@ -10,6 +10,7 @@
  governing permissions and limitations under the License.
  */
 
+import AEPServices
 import AEPTarget
 import SwiftUI
 
@@ -30,6 +31,18 @@ struct ContentView: View {
 
             Button("Reset Experience") {
                 resetExperience()
+            }.padding(10)
+
+            Button("Get Third Party Id") {
+                getThirdPartyId()
+            }.padding(10)
+
+            Button("Get Tnt Id") {
+                getTntId()
+            }.padding(10)
+
+            Button("Set Third Party Id") {
+                setThirdPartyId()
             }.padding(10)
         }
     }
@@ -54,6 +67,22 @@ struct ContentView: View {
 
     func resetExperience() {
         Target.resetExperience()
+    }
+
+    func getThirdPartyId() {
+        Target.getThirdPartyId { id in
+            Log.debug(label: "AEPTargetDemoApp", id)
+        }
+    }
+
+    func getTntId() {
+        Target.getTntId { id in
+            Log.debug(label: "AEPTargetDemoApp", id)
+        }
+    }
+
+    func setThirdPartyId() {
+        Target.setThirdPartyId("SomeThirdPartyId")
     }
 }
 

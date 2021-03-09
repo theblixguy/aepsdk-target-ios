@@ -23,17 +23,10 @@
 /* Begin PBXBuildFile section */
 		21BB6EAE22D5AC72C15DB97C /* Pods_AEPTargetTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 639B326C68E1444919C98676 /* Pods_AEPTargetTests.framework */; };
 		54A53C0BFA0D61EF50B9E5C5 /* Pods_AEPTargetDemoApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 45A74BEED420E4145D1D72CC /* Pods_AEPTargetDemoApp.framework */; };
-		356F08589331CE5682C079B1 /* Pods_AEPTarget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C25D5A6C26809EA683183C03 /* Pods_AEPTarget.framework */; };
 		780DF565258924B70033F107 /* URL+Target.swift in Sources */ = {isa = PBXBuildFile; fileRef = 780DF564258924B70033F107 /* URL+Target.swift */; };
 		780DF56A258924C40033F107 /* TargetPreviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 780DF569258924C40033F107 /* TargetPreviewManager.swift */; };
-		7814B2AE25CB625A00841429 /* MockUIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7814B2AD25CB625A00841429 /* MockUIService.swift */; };
-		786C006725BA1E8600F26D34 /* TargetPreviewManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */; };
-		786C007725BF40E800F26D34 /* TargetNetworkServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C007625BF40E800F26D34 /* TargetNetworkServiceMock.swift */; };
 		786C00BC25C0D3AB00F26D34 /* TargetPreviewManagerFullscreenMessageDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00BB25C0D3AB00F26D34 /* TargetPreviewManagerFullscreenMessageDelegate.swift */; };
 		786C00DE25C1D95300F26D34 /* TargetPreviewManagerFloatingButtonDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00DD25C1D95300F26D34 /* TargetPreviewManagerFloatingButtonDelegate.swift */; };
-		786C00E325C35EEB00F26D34 /* TargetTestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */; };
-		786C00ED25C35FBD00F26D34 /* TestableExtensionRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00EC25C35FBD00F26D34 /* TestableExtensionRuntime.swift */; };
-		786C00F225C4A10A00F26D34 /* MockUrlOpeningService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00F125C4A10A00F26D34 /* MockUrlOpeningService.swift */; };
 		7885141425532281008E6999 /* Target.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7885141325532281008E6999 /* Target.swift */; };
 		78851419255322CB008E6999 /* Target+PublicAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78851418255322CB008E6999 /* Target+PublicAPI.swift */; };
 		7885141E255322D9008E6999 /* Event+Target.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7885141D255322D9008E6999 /* Event+Target.swift */; };
@@ -41,6 +34,12 @@
 		78D5030F2551FCCE00966553 /* AEPTarget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78D503052551FCCE00966553 /* AEPTarget.framework */; };
 		78D503162551FCCE00966553 /* AEPTarget.h in Headers */ = {isa = PBXBuildFile; fileRef = 78D503082551FCCE00966553 /* AEPTarget.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		92AE6D0B25D8E31700F46C59 /* DeliveryRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AE6D0A25D8E31700F46C59 /* DeliveryRequestBuilder.swift */; };
+		92BF53E625F362B700403FCD /* TargetPreviewManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */; };
+		92BF53ED25F362BC00403FCD /* TargetTestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */; };
+		92BF53F425F362E100403FCD /* MockUIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7814B2AD25CB625A00841429 /* MockUIService.swift */; };
+		92BF53FB25F362E600403FCD /* TargetNetworkServiceMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C007625BF40E800F26D34 /* TargetNetworkServiceMock.swift */; };
+		92BF53FC25F362E600403FCD /* MockUrlOpeningService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00F125C4A10A00F26D34 /* MockUrlOpeningService.swift */; };
+		92BF53FD25F362E600403FCD /* TestableExtensionRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 786C00EC25C35FBD00F26D34 /* TestableExtensionRuntime.swift */; };
 		92C44A7F25DB0D39000175FB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A7E25DB0D39000175FB /* AppDelegate.swift */; };
 		92C44A8125DB0D39000175FB /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8025DB0D39000175FB /* SceneDelegate.swift */; };
 		92C44A8325DB0D39000175FB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C44A8225DB0D39000175FB /* ContentView.swift */; };
@@ -300,7 +299,6 @@
 				BB1DBEAE25D2F5E700DDBA15 /* TestHelpers */,
 				BB0C91602577640200F635B8 /* UnitTests */,
 				BB0C915F257763E600F635B8 /* FunctionalTests */,
-				78D503132551FCCE00966553 /* AEPTargetTests.swift */,
 				786C006625BA1E8600F26D34 /* TargetPreviewManagerTests.swift */,
 				78D503152551FCCE00966553 /* Info.plist */,
 				786C00E225C35EEB00F26D34 /* TargetTestConstants.swift */,
@@ -670,11 +668,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92BF53ED25F362BC00403FCD /* TargetTestConstants.swift in Sources */,
+				92BF53FB25F362E600403FCD /* TargetNetworkServiceMock.swift in Sources */,
 				BB1DBEA125D2F33D00DDBA15 /* TargetTests.swift in Sources */,
 				BB1DBE9525D2377600DDBA15 /* MockExtension.swift in Sources */,
+				92BF53E625F362B700403FCD /* TargetPreviewManagerTests.swift in Sources */,
 				BB1DBE9025D22C3D00DDBA15 /* Target+PublicAPITests.swift in Sources */,
+				92BF53FD25F362E600403FCD /* TestableExtensionRuntime.swift in Sources */,
 				BB9C86EF255C9C90007AEF8B /* Event+TargetTests.swift in Sources */,
+				92BF53FC25F362E600403FCD /* MockUrlOpeningService.swift in Sources */,
 				BB1DBEB025D2F60800DDBA15 /* TestableExtensionRuntime.swift in Sources */,
+				92BF53F425F362E100403FCD /* MockUIService.swift in Sources */,
 				BB1DBEB825D30A4A00DDBA15 /* DeliveryRequestBuilderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -686,13 +690,6 @@
 				92C44A7F25DB0D39000175FB /* AppDelegate.swift in Sources */,
 				92C44A8125DB0D39000175FB /* SceneDelegate.swift in Sources */,
 				92C44A8325DB0D39000175FB /* ContentView.swift in Sources */,
-				786C00ED25C35FBD00F26D34 /* TestableExtensionRuntime.swift in Sources */,
-				786C00E325C35EEB00F26D34 /* TargetTestConstants.swift in Sources */,
-				78D503142551FCCE00966553 /* AEPTargetTests.swift in Sources */,
-				786C006725BA1E8600F26D34 /* TargetPreviewManagerTests.swift in Sources */,
-				786C00F225C4A10A00F26D34 /* MockUrlOpeningService.swift in Sources */,
-				786C007725BF40E800F26D34 /* TargetNetworkServiceMock.swift in Sources */,
-				7814B2AE25CB625A00841429 /* MockUIService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
