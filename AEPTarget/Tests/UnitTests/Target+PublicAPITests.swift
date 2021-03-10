@@ -91,7 +91,7 @@ class TargetPublicAPITests: XCTestCase {
     }
 
     func testLocationDisplayed() throws {
-        let expectation = XCTestExpectation(description: "Should dispatch a target request content event for location displayed")
+        let expectation = XCTestExpectation(description: "Should dispatch a target request content event for locations displayed")
         expectation.assertForOverFulfill = true
         EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestContent) { event in
             guard let eventData = event.data, let mboxes = eventData[TargetConstants.EventDataKeys.MBOX_NAMES] as? [String],
@@ -146,6 +146,52 @@ class TargetPublicAPITests: XCTestCase {
         }
 
         Target.resetExperience()
+        wait(for: [expectation], timeout: 1)
+    }
+
+    func testSetThirdPartyId() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request reset identity event for setting third party id")
+        expectation.assertForOverFulfill = true
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestIdentity) { event in
+            guard let eventData = event.data else {
+                XCTFail("Event data is nil")
+                expectation.fulfill()
+                return
+            }
+            let id = eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String
+            XCTAssertEqual(id, "mockId")
+            expectation.fulfill()
+        }
+
+        Target.setThirdPartyId("mockId")
+        wait(for: [expectation], timeout: 1)
+    }
+
+    func testGetThirdPartyId() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request reset identity event for getting third Party id")
+        expectation.assertForOverFulfill = true
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestIdentity) {
+            event in
+            MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: [TargetConstants.EventDataKeys.THIRD_PARTY_ID: "mockId"]))
+        }
+        Target.getThirdPartyId(completion: { id in
+            XCTAssertEqual(id, "mockId")
+            expectation.fulfill()
+        })
+        wait(for: [expectation], timeout: 1)
+    }
+
+    func testGetTntId() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a target request reset identity event for getting tnt id")
+        expectation.assertForOverFulfill = true
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.target, source: EventSource.requestIdentity) {
+            event in
+            MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: [TargetConstants.EventDataKeys.TNT_ID: "mockId"]))
+        }
+        Target.getTntId(completion: { id in
+            XCTAssertEqual(id, "mockId")
+            expectation.fulfill()
+        })
         wait(for: [expectation], timeout: 1)
     }
 }

@@ -155,6 +155,78 @@ class TargetTests: XCTestCase {
         }
         XCTFail()
     }
+
+    func testSetThirdPartyId() {
+        let data: [String: Any] = [
+            TargetConstants.EventDataKeys.THIRD_PARTY_ID: "mockId",
+        ]
+
+        let event = Event(name: "", type: "", source: "", data: data)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestIdentity"] {
+            eventListener(event)
+            XCTAssertNotNil(target.targetState.thirdPartyId)
+            XCTAssertEqual(target.targetState.thirdPartyId, "mockId")
+            return
+        }
+        XCTFail()
+    }
+
+    func testGetThirdPartyId() {
+        let event = Event(name: "", type: "", source: "", data: nil)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        target.targetState.updateThirdPartyId("mockId")
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestIdentity"] {
+            eventListener(event)
+            if let data = mockRuntime.dispatchedEvents[0].data, let id = data[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String {
+                XCTAssertEqual(mockRuntime.dispatchedEvents[0].type, EventType.target)
+                XCTAssertEqual(id, "mockId")
+                return
+            }
+            XCTFail()
+        }
+        XCTFail()
+    }
+
+    func testGetTntId() {
+        let event = Event(name: "", type: "", source: "", data: nil)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        target.targetState.updateTntId("mockId")
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestIdentity"] {
+            eventListener(event)
+            if let data = mockRuntime.dispatchedEvents[0].data, let id = data[TargetConstants.EventDataKeys.TNT_ID] as? String {
+                XCTAssertEqual(mockRuntime.dispatchedEvents[0].type, EventType.target)
+                XCTAssertEqual(id, "mockId")
+                return
+            }
+            XCTFail()
+        }
+        XCTFail()
+    }
+
+    func testConfigurationResponseContent() {
+        let event = Event(name: "", type: "", source: "", data: nil)
+        mockConfigSharedState["global.privacy"] = "optedout"
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: mockConfigSharedState, status: .set))
+        target.onRegistered()
+        // Update state with mocks
+        target.targetState.updateSessionTimestamp()
+        target.targetState.updateEdgeHost("mockedge")
+        target.targetState.updateTntId("sometnt")
+        target.targetState.updateThirdPartyId("somehtirdparty")
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.configuration-com.adobe.eventSource.responseContent"] {
+            eventListener(event)
+            XCTAssertNil(target.targetState.edgeHost)
+            XCTAssertTrue(target.targetState.sessionTimestampInSeconds == 0)
+            XCTAssertNil(target.targetState.thirdPartyId)
+            XCTAssertNotNil(target.targetState.sessionId)
+            return
+        }
+        XCTFail()
+    }
 }
 
 private class MockNetworkService: Networking {

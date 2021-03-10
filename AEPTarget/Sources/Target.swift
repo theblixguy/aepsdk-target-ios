@@ -83,7 +83,7 @@ public class Target: NSObject, Extension {
         }
         guard let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN else {
             resetIdentity(configurationSharedState: configurationSharedState)
-            self.createSharedState(data: self.targetState.generateSharedState(), event: event)
+            createSharedState(data: targetState.generateSharedState(), event: event)
             return
         }
     }
@@ -402,7 +402,7 @@ public class Target: NSObject, Extension {
         if let tntId = targetState.tntId {
             eventData[TargetConstants.EventDataKeys.TNT_ID] = tntId
         }
-        dispatch(event: triggerEvent.createResponseEvent(name: TargetConstants.EventName.PREFETCH_RESPOND, type: EventType.target, source: EventSource.responseIdentity, data: eventData))
+        dispatch(event: triggerEvent.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: eventData))
     }
 
     private func generateTargetDeliveryURL(targetServer: String?, clientCode: String) -> String {

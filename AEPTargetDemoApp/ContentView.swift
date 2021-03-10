@@ -15,6 +15,9 @@ import AEPTarget
 import SwiftUI
 
 struct ContentView: View {
+    @State var thirdPartyId: String = ""
+    @State var updatedThirdPartyId: String = ""
+    @State var tntId: String = ""
     var body: some View {
         VStack {
             Button("Prefetch") {
@@ -33,13 +36,17 @@ struct ContentView: View {
                 resetExperience()
             }.padding(10)
 
+            Text("Third Party ID - \(thirdPartyId)")
             Button("Get Third Party Id") {
                 getThirdPartyId()
             }.padding(10)
 
+            Text("Tnt id - \(tntId)")
             Button("Get Tnt Id") {
                 getTntId()
             }.padding(10)
+
+            TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
 
             Button("Set Third Party Id") {
                 setThirdPartyId()
@@ -71,18 +78,18 @@ struct ContentView: View {
 
     func getThirdPartyId() {
         Target.getThirdPartyId { id in
-            Log.debug(label: "AEPTargetDemoApp", id)
+            self.thirdPartyId = id
         }
     }
 
     func getTntId() {
         Target.getTntId { id in
-            Log.debug(label: "AEPTargetDemoApp", id)
+            self.tntId = id
         }
     }
 
     func setThirdPartyId() {
-        Target.setThirdPartyId("SomeThirdPartyId")
+        Target.setThirdPartyId(updatedThirdPartyId)
     }
 }
 

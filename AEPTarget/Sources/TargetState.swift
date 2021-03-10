@@ -34,7 +34,7 @@ class TargetState {
         }
         return storedSessionId
     }
-    
+
     private var storedEdgeHost: String?
     var edgeHost: String? {
         if isSessionExpired() {
@@ -42,7 +42,7 @@ class TargetState {
         }
         return storedEdgeHost
     }
-    
+
     private let dataStore: NamedCollectionDataStore
 
     /// Loads the TNT ID and the edge host string from the data store when initializing the `TargetState` object
@@ -102,11 +102,11 @@ class TargetState {
 
     /// Updates the edge host in memory and in the data store
     func updateEdgeHost(_ edgeHost: String?) {
-        if edgeHost == self.storedEdgeHost {
+        if edgeHost == storedEdgeHost {
             Log.debug(label: Target.LOG_TAG, "setEdgeHost - New edgeHost value is same as the existing edgeHost \(String(describing: edgeHost))")
             return
         }
-        self.storedEdgeHost = edgeHost
+        storedEdgeHost = edgeHost
         if let edgeHost = edgeHost, !edgeHost.isEmpty {
             dataStore.set(key: TargetConstants.DataStoreKeys.EDGE_HOST, value: edgeHost)
         } else {
