@@ -131,6 +131,7 @@ enum TargetConstants {
         static let SET_PREVIEW_DEEPLINK = "TargetSetPreviewRestartDeeplink"
         static let LOCATIONS_DISPLAYED = "TargetLocationsDisplayed"
         static let LOCATION_CLICKED = "TargetLocationClicked"
+        static let IDENTITY_RESPONSE = "TargetResponseIdentity"
     }
 
     enum EventDataKeys {

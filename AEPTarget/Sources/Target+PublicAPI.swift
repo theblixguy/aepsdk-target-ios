@@ -89,18 +89,36 @@ import Foundation
     /// when AEPTarget::resetExperience is called.
     /// - Parameter thirdPartyId: a string pointer containing the value of the third party id (custom visitor id)
     static func setThirdPartyId(_ id: String) {
-        // TODO: need to verify input parameters
         let eventData = [TargetConstants.EventDataKeys.THIRD_PARTY_ID: id]
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
         MobileCore.dispatch(event: event)
     }
 
     /// Gets the custom visitor ID for Target
+    /// This ID will be reset  when the `resetExperience()` API is called.
     /// - Parameter completion:  the callback `closure` will be invoked to return the thirdPartyId value or `nil` if no third-party ID is set
-    static func getThirdPartyId(completion _: (String) -> Void) {
+    static func getThirdPartyId(completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: nil)
-        MobileCore.dispatch(event: event) { _ in
-            // TODO:
+        MobileCore.dispatch(event: event) { responseEvent in
+            guard let responseEvent = responseEvent else {
+                let error = "Request to get third party id failed, \(TargetError.ERROR_TIMEOUT)"
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            guard let eventData = responseEvent.data else {
+                let error = "Unable to handle response, event data is nil."
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            guard let thirdPartyId = eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String else {
+                let error = "Unable to handle response, No third party id available."
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            completion(thirdPartyId, nil)
         }
     }
 
@@ -112,10 +130,28 @@ import Foundation
     /// backup process, and is removed at uninstall or when AEPTarget::resetExperience is called.
     ///
     /// - Parameter completion:  the callback `closure` invoked with the current tnt id or `nil` if no tnt id is set.
-    static func getTntId(completion _: (String) -> Void) {
+    static func getTntId(completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: nil)
-        MobileCore.dispatch(event: event) { _ in
-            // TODO:
+        MobileCore.dispatch(event: event) { responseEvent in
+            guard let responseEvent = responseEvent else {
+                let error = "Request to get third party id failed, \(TargetError.ERROR_TIMEOUT)"
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            guard let eventData = responseEvent.data else {
+                let error = "Unable to handle response, event data is nil."
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            guard let tntId = eventData[TargetConstants.EventDataKeys.TNT_ID] as? String else {
+                let error = "Unable to handle response, No tntid available."
+                completion(nil, TargetError(message: error))
+                Log.error(label: Target.LOG_TAG, error)
+                return
+            }
+            completion(tntId, nil)
         }
     }
 

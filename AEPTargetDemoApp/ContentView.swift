@@ -10,10 +10,14 @@
  governing permissions and limitations under the License.
  */
 
+import AEPServices
 import AEPTarget
 import SwiftUI
 
 struct ContentView: View {
+    @State var thirdPartyId: String = ""
+    @State var updatedThirdPartyId: String = ""
+    @State var tntId: String = ""
     var body: some View {
         VStack {
             Button("Prefetch") {
@@ -30,6 +34,22 @@ struct ContentView: View {
 
             Button("Reset Experience") {
                 resetExperience()
+            }.padding(10)
+
+            Text("Third Party ID - \(thirdPartyId)")
+            Button("Get Third Party Id") {
+                getThirdPartyId()
+            }.padding(10)
+
+            Text("Tnt id - \(tntId)")
+            Button("Get Tnt Id") {
+                getTntId()
+            }.padding(10)
+
+            TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
+
+            Button("Set Third Party Id") {
+                setThirdPartyId()
             }.padding(10)
         }
     }
@@ -54,6 +74,22 @@ struct ContentView: View {
 
     func resetExperience() {
         Target.resetExperience()
+    }
+
+    func getThirdPartyId() {
+        Target.getThirdPartyId { id in
+            self.thirdPartyId = id
+        }
+    }
+
+    func getTntId() {
+        Target.getTntId { id in
+            self.tntId = id
+        }
+    }
+
+    func setThirdPartyId() {
+        Target.setThirdPartyId(updatedThirdPartyId)
     }
 }
 
