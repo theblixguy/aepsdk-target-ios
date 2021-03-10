@@ -36,26 +36,26 @@ class DeliveryRequestBuilderTests: XCTestCase {
               ]
             }
         """
+        let targetIds = TargetDeliveryRequestBuilder.getTargetIDs(
+            tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+            identitySharedState: [
+                "mid": "mid_001",
+                "visitoridslist": [
+                    [
+                        "id": "vid_id_1",
+                        "id_type": "vid_type_1",
+                        "authentication_state": 1,
+                    ],
+                    [
+                        "id": "vid_id_2",
+                        "id_type": "vid_type_2",
+                        "authentication_state": 0,
+                    ],
+                ],
+            ]
+        )
         if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
-           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
-           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
-               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
-               identitySharedState: [
-                   "mid": "mid_001",
-                   "visitoridslist": [
-                       [
-                           "id": "vid_id_1",
-                           "id_type": "vid_type_1",
-                           "authentication_state": 1,
-                       ],
-                       [
-                           "id": "vid_id_2",
-                           "id_type": "vid_type_2",
-                           "authentication_state": 0,
-                       ],
-                   ],
-               ]
-           )
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
         {
             XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
             return
@@ -78,25 +78,25 @@ class DeliveryRequestBuilderTests: XCTestCase {
               ]
             }
         """
+        let targetIds = TargetDeliveryRequestBuilder.getTargetIDs(
+            tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+            identitySharedState: [
+                "mid": "mid_001",
+                "visitoridslist": [
+                    [
+                        "id": "vid_id_1",
+                        "id_type": "vid_type_1",
+                        "authentication_state": 1,
+                    ],
+                    [
+                        "id": "vid_id_2",
+                        "authentication_state": 0,
+                    ],
+                ],
+            ]
+        )
         if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
-           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
-           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
-               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
-               identitySharedState: [
-                   "mid": "mid_001",
-                   "visitoridslist": [
-                       [
-                           "id": "vid_id_1",
-                           "id_type": "vid_type_1",
-                           "authentication_state": 1,
-                       ],
-                       [
-                           "id": "vid_id_2",
-                           "authentication_state": 0,
-                       ],
-                   ],
-               ]
-           )
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
         {
             XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
             return
@@ -112,14 +112,14 @@ class DeliveryRequestBuilderTests: XCTestCase {
               "marketingCloudVisitorId": "mid_001"
             }
         """
+        let targetIds = TargetDeliveryRequestBuilder.getTargetIDs(
+            tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
+            identitySharedState: [
+                "mid": "mid_001",
+            ]
+        )
         if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
-           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
-           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
-               tntid: "tntid_1", thirdPartyId: "thirdPartyId_1",
-               identitySharedState: [
-                   "mid": "mid_001",
-               ]
-           )
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
         {
             XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
             return
@@ -134,14 +134,14 @@ class DeliveryRequestBuilderTests: XCTestCase {
               "marketingCloudVisitorId": "mid_001"
             }
         """
+        let targetIds = TargetDeliveryRequestBuilder.getTargetIDs(
+            tntid: nil, thirdPartyId: "thirdPartyId_1",
+            identitySharedState: [
+                "mid": "mid_001",
+            ]
+        )
         if let data = EXPECTED_TARGET_IDS.data(using: .utf8),
-           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any],
-           let targetIds = DeliveryRequestBuilder.generateTargetIDsBy(
-               tntid: nil, thirdPartyId: "thirdPartyId_1",
-               identitySharedState: [
-                   "mid": "mid_001",
-               ]
-           )
+           let jsonDictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
         {
             XCTAssertTrue(NSDictionary(dictionary: targetIds.asDictionary() ?? [String: Any]()).isEqual(to: jsonDictionary))
             return

@@ -253,11 +253,12 @@ class TargetPublicAPITests: XCTestCase {
             EventHub.shared.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.TARGET_REQUEST_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: "someContent", TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID: pairId1]))
 
             EventHub.shared.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.TARGET_REQUEST_RESPONSE, type: EventType.target, source: EventSource.responseContent, data: [TargetConstants.EventDataKeys.TARGET_CONTENT: "someContent2", TargetConstants.EventDataKeys.TARGET_RESPONSE_PAIR_ID: pairId2]))
+            expectation1.fulfill()
+            expectation2.fulfill()
         }
 
         Target.retrieveLocationContent(requests: [tr1, tr2], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
 
-        wait(for: [expectation1], timeout: 1)
-        wait(for: [expectation2], timeout: 1)
+        wait(for: [expectation1, expectation2], timeout: 1)
     }
 }
