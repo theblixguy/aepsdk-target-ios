@@ -69,8 +69,8 @@ public class Target: NSObject, Extension {
     }
 
     private func handleRequestIdentity(_ event: Event) {
-        if let eventData = event.data as [String: Any]?, let thirdPartyId = eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String {
-            setThirdPartyId(thirdPartyId: thirdPartyId, event: event, eventData: eventData)
+        if let eventData = event.data, let thirdPartyId = eventData[TargetConstants.EventDataKeys.THIRD_PARTY_ID] as? String {
+            setThirdPartyId(thirdPartyId: thirdPartyId, event: event)
         } else {
             dispatchRequestIdentityResponse(triggerEvent: event)
         }
@@ -81,7 +81,7 @@ public class Target: NSObject, Extension {
             Log.warning(label: Target.LOG_TAG, "Missing shared state - configuration")
             return
         }
-        guard let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_IN else {
+        if let privacy = configurationSharedState[TargetConstants.Configuration.SharedState.Keys.GLOBAL_CONFIG_PRIVACY] as? String, privacy == TargetConstants.Configuration.SharedState.Values.GLOBAL_CONFIG_PRIVACY_OPT_OUT {
             resetIdentity(configurationSharedState: configurationSharedState)
             createSharedState(data: targetState.generateSharedState(), event: event)
             return
@@ -553,9 +553,13 @@ public class Target: NSObject, Extension {
     /// Saves the third party Id
     /// - Parameters:
     ///     - event: event which has the third party Id in event data
-    private func setThirdPartyId(thirdPartyId: String, event: Event, eventData: [String: Any]) {
+    private func setThirdPartyId(thirdPartyId: String, event: Event) {
         guard let configurationSharedState = getSharedState(extensionName: TargetConstants.Configuration.EXTENSION_NAME, event: event)?.value else {
-            dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Missing shared state - configuration")
+            Log.warning(label: Target.LOG_TAG, "Missing shared state - configuration")
+            return
+        }
+        guard let eventData = event.data as [String: Any]? else {
+            Log.error(label: Target.LOG_TAG, "Unable to set third party id, event data is nil.")
             return
         }
 
