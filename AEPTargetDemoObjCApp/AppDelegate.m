@@ -17,7 +17,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
     [AEPMobileCore setLogLevel: AEPLogLevelTrace];
-    NSArray *extensionsToRegister = @[AEPMobileIdentity.class, AEPMobileLifecycle.class, AEPMobileSignal.class];
+    NSArray *extensionsToRegister = @[AEPMobileIdentity.class, AEPMobileLifecycle.class, AEPMobileSignal.class, AEPMobileTarget.class];
     [AEPMobileCore registerExtensions:extensionsToRegister completion:^{
         [AEPMobileCore lifecycleStart:@{@"contextDataKey": @"contextDataVal"}];
     }];

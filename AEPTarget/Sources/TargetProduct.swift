@@ -14,14 +14,14 @@ import Foundation
 /// Class for specifying Target product parameters
 @objc(AEPTargetProduct)
 public class TargetProduct: NSObject, Codable {
-    public let productId: String
-    public let categoryId: String?
+    @objc public let productId: String
+    @objc public let categoryId: String?
 
     /// Initialize a `TargetProduct` with a product  id and a productCategoryId.
     /// - Parameters:
     ///   - productId: product id
     ///   - categoryId: product category id
-    public init(productId: String, categoryId: String? = nil) {
+    @objc public init(productId: String, categoryId: String? = nil) {
         self.productId = productId
         self.categoryId = categoryId
     }

@@ -92,14 +92,24 @@ struct ContentView: View {
     }
 
     func getThirdPartyId() {
-        Target.getThirdPartyId { id in
-            self.thirdPartyId = id
+        Target.getThirdPartyId { id, err in
+            if let id = id {
+                self.thirdPartyId = id
+            }
+            if let err = err {
+                Log.error(label: "AEPTargetDemoApp", "Error: \(err)")
+            }
         }
     }
 
     func getTntId() {
-        Target.getTntId { id in
-            self.tntId = id
+        Target.getTntId { id, err in
+            if let id = id {
+                self.tntId = id
+            }
+            if let err = err {
+                Log.error(label: "AEPTargetDemoApp", "Error: \(err)")
+            }
         }
     }
 
