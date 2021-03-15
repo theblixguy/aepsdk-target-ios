@@ -92,6 +92,9 @@ public class Target: NSObject, Extension {
         if event.isResetExperienceEvent {
             resetIdentity(event)
         }
+        if event.isClearPrefetchCache {
+            targetState.clearprefetchedMboxes()
+        }
     }
 
     private func handleRequestContent(_ event: Event) {

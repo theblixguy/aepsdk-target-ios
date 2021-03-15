@@ -50,11 +50,17 @@ struct ContentView: View {
                 getTntId()
             }.padding(10)
 
-            TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
+            Group {
+                TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
 
-            Button("Set Third Party Id") {
-                setThirdPartyId()
-            }.padding(10)
+                Button("Set Third Party Id") {
+                    setThirdPartyId()
+                }.padding(10)
+
+                Button("Clear prefetch cache") {
+                    setThirdPartyId()
+                }.padding(10)
+            }
         }
     }
 
@@ -80,15 +86,19 @@ struct ContentView: View {
     }
 
     func locationDisplayed() {
-        Target.displayedLocations(mboxNames: ["aep-loc-1", "aep-loc-2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
+        Target.displayedLocations(names: ["aep-loc-1", "aep-loc-2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
     }
 
     func locationClicked() {
-        Target.clickedLocation(mboxName: "aep-loc-1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
+        Target.clickedLocation(name: "aep-loc-1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"], order: TargetOrder(id: "id1", total: 1.0, purchasedProductIds: ["ppId1"]), product: TargetProduct(productId: "pId1", categoryId: "cId1")))
     }
 
     func resetExperience() {
         Target.resetExperience()
+    }
+
+    func clearPrefetchCache() {
+        Target.clearPrefetchCache()
     }
 
     func getThirdPartyId() {
