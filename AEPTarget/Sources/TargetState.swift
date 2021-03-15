@@ -161,6 +161,10 @@ class TargetState {
         notifications.removeAll()
     }
 
+    func clearprefetchedMboxes() {
+        prefetchedMboxJsonDicts.removeAll()
+    }
+
     /// Verifies if current target session is expired.
     /// - Returns: whether Target session has expired
     private func isSessionExpired() -> Bool {

@@ -53,4 +53,9 @@ extension Event {
     var isResetExperienceEvent: Bool {
         return data?[TargetConstants.EventDataKeys.RESET_EXPERIENCE] as? Bool ?? false
     }
+
+    /// Returns true if this event is a clear prefetch request event
+    var isClearPrefetchCache: Bool {
+        return data?[TargetConstants.EventDataKeys.CLEAR_PREFETCH_CACHE] as? Bool ?? false
+    }
 }
