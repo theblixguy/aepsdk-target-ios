@@ -16,7 +16,6 @@
 @import AEPLifecycle;
 @import AEPIdentity;
 @import AEPServices;
-@import AEPSignal;
 @import AEPTarget;
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
