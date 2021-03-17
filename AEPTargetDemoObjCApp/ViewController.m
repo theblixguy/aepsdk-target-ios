@@ -16,6 +16,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *lblThirdParty;
 @property (weak, nonatomic) IBOutlet UILabel *lblTntId;
 @property (weak, nonatomic) IBOutlet UITextField *textThirdPartyID;
+@property (weak, nonatomic) IBOutlet UITextField *griffonUrl;
 
 @end
 
@@ -74,6 +75,12 @@
 - (IBAction)setThirdPartyClicked:(id)sender {
     if(![_textThirdPartyID.text isEqualToString:@""]) {
         [AEPMobileTarget setThirdPartyId:_textThirdPartyID.text];
+    }
+}
+
+- (IBAction)startGriffon:(id)sender {
+    if(![_griffonUrl.text isEqualToString:@""]) {
+        [AEPAssurance startSession:[NSURL URLWithString:_griffonUrl.text]];
     }
 }
 

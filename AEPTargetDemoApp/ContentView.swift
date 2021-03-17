@@ -10,6 +10,7 @@
  governing permissions and limitations under the License.
  */
 
+import AEPAssurance
 import AEPServices
 import AEPTarget
 import SwiftUI
@@ -18,49 +19,62 @@ struct ContentView: View {
     @State var thirdPartyId: String = ""
     @State var updatedThirdPartyId: String = ""
     @State var tntId: String = ""
+    @State var griffonUrl: String = "targetsdk://?adb_validation_sessionid=860de10f-acd1-40eb-be31-f7dca4e650f3"
     var body: some View {
-        VStack {
-            Button("Prefetch") {
-                prefetch()
-            }.padding(10)
-
-            Button("GetLocations") {
-                getLocations()
-            }.padding(10)
-
-            Button("Locations displayed") {
-                locationDisplayed()
-            }.padding(10)
-
-            Button("Location clicked") {
-                locationClicked()
-            }.padding(10)
-
-            Button("Reset Experience") {
-                resetExperience()
-            }.padding(10)
-
-            Text("Third Party ID - \(thirdPartyId)")
-            Button("Get Third Party Id") {
-                getThirdPartyId()
-            }.padding(10)
-
-            Text("Tnt id - \(tntId)")
-            Button("Get Tnt Id") {
-                getTntId()
-            }.padding(10)
-
-            Group {
-                TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
-
-                Button("Set Third Party Id") {
-                    setThirdPartyId()
+        ScrollView {
+            VStack(alignment: .center, spacing: nil, content: {
+                TextField("Griffon URL", text: $griffonUrl).multilineTextAlignment(.center)
+                Button("Connect to griffon") {
+                    startGriffon()
                 }.padding(10)
 
-                Button("Clear prefetch cache") {
-                    setThirdPartyId()
+                Button("Prefetch") {
+                    prefetch()
                 }.padding(10)
-            }
+
+                Button("GetLocations") {
+                    getLocations()
+                }.padding(10)
+
+                Button("Locations displayed") {
+                    locationDisplayed()
+                }.padding(10)
+
+                Button("Location clicked") {
+                    locationClicked()
+                }.padding(10)
+
+                Button("Reset Experience") {
+                    resetExperience()
+                }.padding(10)
+
+                Text("Third Party ID - \(thirdPartyId)")
+                Button("Get Third Party Id") {
+                    getThirdPartyId()
+                }.padding(10)
+
+                Group {
+                    Text("Tnt id - \(tntId)")
+                    Button("Get Tnt Id") {
+                        getTntId()
+                    }.padding(10)
+                    TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
+
+                    Button("Set Third Party Id") {
+                        setThirdPartyId()
+                    }.padding(10)
+
+                    Button("Clear prefetch cache") {
+                        setThirdPartyId()
+                    }.padding(10)
+                }
+            })
+        }
+    }
+
+    func startGriffon() {
+        if let url = URL(string: griffonUrl) {
+            AEPAssurance.startSession(url)
         }
     }
 
