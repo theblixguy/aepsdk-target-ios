@@ -13,6 +13,7 @@
 
 #import <UIKit/UIKit.h>
 @import AEPTarget;
+@import AEPAssurance;
 
 @interface ViewController : UIViewController
 

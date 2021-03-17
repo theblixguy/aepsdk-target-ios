@@ -17,6 +17,8 @@
 @import AEPIdentity;
 @import AEPServices;
 @import AEPTarget;
+@import AEPAssurance;
+@import ACPCore;
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 

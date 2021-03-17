@@ -30,6 +30,11 @@
 
     // Use the App id assigned to this application via Adobe Launch
     [AEPMobileCore configureWithAppId: @"launch-ENc28aaf2fb6934cff830c8d3ddc5465b1-development"];
+    
+    [AEPAssurance registerExtension];
+    [ACPCore start:^{
+        
+    }];
     return YES;
 }
 

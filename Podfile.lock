@@ -1,4 +1,16 @@
 PODS:
+  - ACPCore (2.9.9):
+    - AEPCore
+    - AEPIdentity
+    - AEPLifecycle
+    - AEPRulesEngine
+    - AEPServices
+    - AEPSignal
+  - AEPAssurance (1.1.0):
+    - ACPCore (>= 2.9.0)
+    - AEPAssurance/xcframeworks (= 1.1.0)
+  - AEPAssurance/xcframeworks (1.1.0):
+    - ACPCore (>= 2.9.0)
   - AEPCore (3.0.0):
     - AEPRulesEngine (= 1.0.0)
     - AEPServices (= 3.0.0)
@@ -12,6 +24,8 @@ PODS:
     - AEPCore (= 3.0.0)
 
 DEPENDENCIES:
+  - ACPCore (from `https://github.com/adobe/aepsdk-compatibility-ios.git`, branch `main`)
+  - AEPAssurance
   - AEPCore (from `https://github.com/adobe/aepsdk-core-ios.git`, branch `dev-v3.1.0`)
   - AEPIdentity (from `https://github.com/adobe/aepsdk-core-ios.git`, branch `dev-v3.1.0`)
   - AEPLifecycle (from `https://github.com/adobe/aepsdk-core-ios.git`, branch `dev-v3.1.0`)
@@ -19,7 +33,14 @@ DEPENDENCIES:
   - AEPServices (from `https://github.com/adobe/aepsdk-core-ios.git`, branch `dev-v3.1.0`)
   - AEPSignal (from `https://github.com/adobe/aepsdk-core-ios.git`, branch `dev-v3.1.0`)
 
+SPEC REPOS:
+  trunk:
+    - AEPAssurance
+
 EXTERNAL SOURCES:
+  ACPCore:
+    :branch: main
+    :git: https://github.com/adobe/aepsdk-compatibility-ios.git
   AEPCore:
     :branch: dev-v3.1.0
     :git: https://github.com/adobe/aepsdk-core-ios.git
@@ -40,6 +61,9 @@ EXTERNAL SOURCES:
     :git: https://github.com/adobe/aepsdk-core-ios.git
 
 CHECKOUT OPTIONS:
+  ACPCore:
+    :commit: 125efc6821c344df93a669bf088674228269def0
+    :git: https://github.com/adobe/aepsdk-compatibility-ios.git
   AEPCore:
     :commit: 3ad5128dd3a0ecec5fcba3739090d84f03485b63
     :git: https://github.com/adobe/aepsdk-core-ios.git
@@ -60,6 +84,8 @@ CHECKOUT OPTIONS:
     :git: https://github.com/adobe/aepsdk-core-ios.git
 
 SPEC CHECKSUMS:
+  ACPCore: 67e4b855bf16cfb6a63024a4ddb73d15c0fd30e5
+  AEPAssurance: c9c21b7e57bf993db210766631db2ef3732d4fa4
   AEPCore: 9ced1f1fddcbfd61517461e548e36aee740bf7c8
   AEPIdentity: 79c57508bbabc8c2cf7f90e2baed15b03f4e97e6
   AEPLifecycle: ed9b2fca314eb91da83766986bad8cb914555499
@@ -67,6 +93,6 @@ SPEC CHECKSUMS:
   AEPServices: 21ea64149483fdfbd5f88f546b9f5ad7d4987400
   AEPSignal: b4ac5c8e8c68e8902739426d70c01ed3ce229ac9
 
-PODFILE CHECKSUM: be90cb646970f74471e9c1cb9480f5c3612db180
+PODFILE CHECKSUM: 0b63a7e31bea661239567902a2023f9eb7964f4e
 
 COCOAPODS: 1.10.1
