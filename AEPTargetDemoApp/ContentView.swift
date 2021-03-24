@@ -17,7 +17,6 @@ import AEPTarget
 import SwiftUI
 
 struct ContentView: View {
-<<<<<<< HEAD
     @State var thirdPartyId: String = ""
     @State var updatedThirdPartyId: String = ""
     @State var tntId: String = ""
@@ -70,7 +69,7 @@ struct ContentView: View {
                     Button("Clear prefetch cache") {
                         setThirdPartyId()
                     }.padding(10)
-                    
+
                     Button("Enter Preview") {
                         enterPreview()
                     }.padding(10)

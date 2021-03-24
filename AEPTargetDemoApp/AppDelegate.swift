@@ -34,7 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AEPAssurance.registerExtension()
         // need to call `ACPCore.start` in order to get ACP* extensions registered to AEPCore
         ACPCore.start {}
-        
+
         return true
     }
 

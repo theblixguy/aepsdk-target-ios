@@ -309,6 +309,7 @@ class TargetTests: XCTestCase {
         }
         XCTFail()
     }
+
     // MARK: - Target Preview Tests
 
     func testHandleRestartDeeplink() {

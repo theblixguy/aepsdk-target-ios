@@ -20,7 +20,7 @@ class MockTargetPreviewManager: PreviewManager {
         self.restartDeepLink = restartDeepLink.absoluteString
         setRestartDeepLinkCalled = true
     }
-    
+
     var enterPreviewModeWithDeepLinkCalled = false
     func enterPreviewModeWithDeepLink(clientCode _: String, deepLink _: URL) {
         enterPreviewModeWithDeepLinkCalled = true

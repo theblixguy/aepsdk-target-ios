@@ -15,7 +15,7 @@ import XCTest
 
 class MockPreviewManagerUIDelegate: FullscreenMessageDelegate, FloatingButtonDelegate {
     func onShowFailure() {}
-    
+
     var onShowButtonCalled = false
     var onShowButtonExpectation: XCTestExpectation?
     // Button on show
