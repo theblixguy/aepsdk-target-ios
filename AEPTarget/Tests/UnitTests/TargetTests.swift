@@ -26,8 +26,35 @@ class TargetTests: XCTestCase {
     var mockConfigSharedState = ["target.clientCode": "code_123", "global.privacy": "optedin"]
 
     override func setUp() {
+        cleanUserDefaults()
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
+    }
+
+    private func cleanUserDefaults() {
+        for _ in 0 ... 5 {
+            for key in getUserDefaultsV5().dictionaryRepresentation().keys {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+        for _ in 0 ... 5 {
+            for key in UserDefaults.standard.dictionaryRepresentation().keys {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+        ServiceProvider.shared.namedKeyValueService.setAppGroup(nil)
+    }
+
+    private func getTargetDataStore() -> NamedCollectionDataStore {
+        return NamedCollectionDataStore(name: "com.adobe.module.target")
+    }
+
+    private func getUserDefaultsV5() -> UserDefaults {
+        if let v5AppGroup = ServiceProvider.shared.namedKeyValueService.getAppGroup(), !v5AppGroup.isEmpty {
+            return UserDefaults(suiteName: v5AppGroup) ?? UserDefaults.standard
+        }
+
+        return UserDefaults.standard
     }
 
     func testRegisterExtension_registersWithoutAnyErrorOrCrash() {
@@ -37,6 +64,28 @@ class TargetTests: XCTestCase {
     func testRegisterExtension() {
         target.onRegistered()
         XCTAssertEqual(5, mockRuntime.listeners.count)
+    }
+
+    func testTargetInitWithDataMigration() {
+        let userDefaultsV5 = getUserDefaultsV5()
+        let targetDataStore = getTargetDataStore()
+        cleanUserDefaults()
+        XCTAssertEqual(nil, targetDataStore.getBool(key: "v5.migration.complete"))
+
+        let timestamp = Date().getUnixTimeInSeconds()
+        userDefaultsV5.set("edge.host.com", forKey: "Adobe.ADOBEMOBILE_TARGET.EDGE_HOST")
+        userDefaultsV5.set("id_1", forKey: "Adobe.ADOBEMOBILE_TARGET.TNT_ID")
+        userDefaultsV5.set("id_2", forKey: "Adobe.ADOBEMOBILE_TARGET.THIRD_PARTY_ID")
+        userDefaultsV5.set("E621E1F8-C36C-495A-93FC-0C247A3E6E5F", forKey: "Adobe.ADOBEMOBILE_TARGET.SESSION_ID")
+        userDefaultsV5.set(timestamp, forKey: "Adobe.ADOBEMOBILE_TARGET.SESSION_TIMESTAMP")
+
+        let target = Target(runtime: mockRuntime)
+        XCTAssertEqual(true, targetDataStore.getBool(key: "v5.migration.complete"))
+        XCTAssertEqual("edge.host.com", target?.targetState.edgeHost)
+        XCTAssertEqual("id_1", target?.targetState.tntId)
+        XCTAssertEqual("id_2", target?.targetState.thirdPartyId)
+        XCTAssertEqual("E621E1F8-C36C-495A-93FC-0C247A3E6E5F", target?.targetState.sessionId)
+        XCTAssertEqual(timestamp, target?.targetState.sessionTimestampInSeconds)
     }
 
     func testReadyForEvent() {
