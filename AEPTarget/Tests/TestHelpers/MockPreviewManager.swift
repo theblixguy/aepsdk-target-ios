@@ -16,8 +16,8 @@ import AEPServices
 import Foundation
 
 class MockTargetPreviewManager: PreviewManager {
-    func setRestartDeepLink(_ restartDeepLink: URL) {
-        self.restartDeepLink = restartDeepLink.absoluteString
+    func setRestartDeepLink(_ restartDeepLink: String) {
+        self.restartDeepLink = restartDeepLink
         setRestartDeepLinkCalled = true
     }
 
