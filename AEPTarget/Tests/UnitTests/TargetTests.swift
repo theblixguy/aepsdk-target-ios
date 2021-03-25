@@ -18,6 +18,7 @@ import XCTest
 class TargetTests: XCTestCase {
     var target: Target!
     var mockRuntime: TestableExtensionRuntime!
+    var mockPreviewManager = MockTargetPreviewManager()
 
     var mockMBox = ["mbox1", "mbox2"]
     var mockMBoxJson = ["mbox1": ["state": "state1", "options": [["eventToken": "sometoken"]], "metrics": [["type": "click", "eventToken": "eventToken"]]],
@@ -29,6 +30,8 @@ class TargetTests: XCTestCase {
         cleanUserDefaults()
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
+        target.previewManager = mockPreviewManager
+        target.onRegistered()
     }
 
     private func cleanUserDefaults() {
@@ -302,6 +305,24 @@ class TargetTests: XCTestCase {
             } else {
                 XCTFail()
             }
+            return
+        }
+        XCTFail()
+    }
+
+    // MARK: - Target Preview Tests
+
+    func testHandleRestartDeeplink() {
+        let testRestartDeeplink = "testUrl://test"
+        let eventData = [TargetConstants.EventDataKeys.PREVIEW_RESTART_DEEP_LINK: testRestartDeeplink]
+        let event = Event(name: "testRestartDeeplinkEvent", type: EventType.target, source: EventSource.requestContent, data: eventData)
+        mockRuntime.simulateSharedState(extensionName: "com.adobe.module.configuration", event: event, data: (value: ["target.clientCode": "code_123", "global.privacy": "optedin"], status: .set))
+        target.onRegistered()
+        mockRuntime.simulateComingEvent(event: event)
+        if let eventListener: EventListener = mockRuntime.listeners["com.adobe.eventType.target-com.adobe.eventSource.requestContent"] {
+            eventListener(event)
+            XCTAssertTrue(mockPreviewManager.setRestartDeepLinkCalled)
+            XCTAssertEqual(mockPreviewManager.restartDeepLink, testRestartDeeplink)
             return
         }
         XCTFail()

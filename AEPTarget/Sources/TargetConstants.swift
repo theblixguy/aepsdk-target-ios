@@ -179,6 +179,7 @@ enum TargetConstants {
         // shared sate
         static let TNT_ID = "tntid"
         static let PREVIEW_INITIATED = "ispreviewinitiated"
+        static let DEEPLINK = "deeplink"
 
         enum Analytics {
             static let TRACK_INTERNAL = "trackinternal"
@@ -270,6 +271,6 @@ enum TargetConstants {
     }
 
     enum NetworkConnection {
-        static let DEFAULT_CONNECTION_TIMEOUT_SEC = TimeInterval(5)
+        static let DEFAULT_CONNECTION_TIMEOUT_SEC = TimeInterval(2)
     }
 }
