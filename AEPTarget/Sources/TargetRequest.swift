@@ -15,8 +15,8 @@ public class TargetRequest: NSObject, Codable {
     @objc public let name: String
     @objc public let defaultContent: String
     @objc public let targetParameters: TargetParameters?
-    let responsePairId: String
-    var contentCallback: ((String?) -> Void)?
+    @objc let responsePairId: String
+    @objc var contentCallback: ((String?) -> Void)?
 
     /// Instantiate a `TargetRequest` object
     /// - Parameters:
