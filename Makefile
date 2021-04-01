@@ -18,9 +18,6 @@ check-format:
 format:
 	swiftformat .
 
-generate-lcov:
-	xcrun llvm-cov export -format="lcov" .build/debug/AEPRulesEnginePackageTests.xctest/Contents/MacOS/AEPRulesEnginePackageTests -instr-profile .build/debug/codecov/default.profdata > info.lcov
-
 pod-install:
 	(pod install --repo-update)
 
