@@ -29,22 +29,22 @@ import Foundation
     /// an error object, nil if the prefetch was successful or error description if the prefetch was unsuccessful.
     /// The prefetched mboxes are cached in memory for the current application session and returned when requested.
     /// - Parameters:
-    ///   - prefetchObjectArray: an array of AEPTargetPrefetch objects representing the desired mboxes to prefetch
+    ///   - prefetchArray: an array of AEPTargetPrefetch objects representing the desired mboxes to prefetch
     ///   - targetParameters: a TargetParameters object containing parameters for all the mboxes in the request array
     ///   - completion: the callback `closure` which will be called after the prefetch is complete.  The parameter in the callback will be nil if the prefetch completed successfully, or will contain error message otherwise
     @objc(prefetchContent:withParameters:callback:)
-    static func prefetchContent(prefetchObjectArray: [TargetPrefetch], targetParameters: TargetParameters?, completion: ((Error?) -> Void)?) {
+    static func prefetchContent(_ prefetchArray: [TargetPrefetch], with targetParameters: TargetParameters? = nil, _ completion: ((Error?) -> Void)?) {
         let completion = completion ?? { _ in }
 
-        guard !prefetchObjectArray.isEmpty else {
+        guard !prefetchArray.isEmpty else {
             Log.error(label: Target.LOG_TAG, "Failed to prefetch Target request (the provided request list for mboxes is empty or nil)")
             completion(TargetError(message: TargetError.ERROR_EMPTY_PREFETCH_LIST))
             return
         }
-        var prefetchArray = [[String: Any]]()
-        for prefetch in prefetchObjectArray {
+        var prefetchDataArray = [[String: Any]]()
+        for prefetch in prefetchArray {
             if let dict = prefetch.asDictionary() {
-                prefetchArray.append(dict)
+                prefetchDataArray.append(dict)
 
             } else {
                 Log.error(label: Target.LOG_TAG, "Failed to prefetch Target request (the provided prefetch object can't be converted to [String: Any] dictionary), prefetch => \(prefetch)")
@@ -53,7 +53,7 @@ import Foundation
             }
         }
 
-        var eventData: [String: Any] = [TargetConstants.EventDataKeys.PREFETCH_REQUESTS: prefetchArray]
+        var eventData: [String: Any] = [TargetConstants.EventDataKeys.PREFETCH_REQUESTS: prefetchDataArray]
         if let targetParametersDict = targetParameters?.asDictionary() {
             eventData[TargetConstants.EventDataKeys.TARGET_PARAMETERS] = targetParametersDict
         }
@@ -79,11 +79,11 @@ import Foundation
     /// Each object in the array contains a callback function, which will be invoked when content is available for
     /// its given mbox location.
     /// - Parameters:
-    ///   - requests:  An array of AEPTargetRequestObject objects to retrieve content
+    ///   - requestArray:  An array of AEPTargetRequestObject objects to retrieve content
     ///   - targetParameters: a TargetParameters object containing parameters for all locations in the requests array
     @objc(retrieveLocationContent:withParameters:)
-    static func retrieveLocationContent(requests: [TargetRequest], targetParameters: TargetParameters?) {
-        if requests.isEmpty {
+    static func retrieveLocationContent(_ requestArray: [TargetRequest], with targetParameters: TargetParameters? = nil) {
+        if requestArray.isEmpty {
             Log.error(label: Target.LOG_TAG, "Failed to retrieve location content target request \(TargetError.ERROR_NULL_EMPTY_REQUEST_MESSAGE)")
             return
         }
@@ -91,7 +91,7 @@ import Foundation
         var targetRequestsArray = [[String: Any]]()
         var tempIdToRequest: [String: TargetRequest] = [:]
 
-        for request in requests {
+        for request in requestArray {
             if request.name.isEmpty {
                 // If the callback is present call with default content
                 if let callback = request.contentCallback {
@@ -139,8 +139,8 @@ import Foundation
     /// Sets the custom visitor ID for Target.
     /// Sets a custom ID to identify visitors (profiles). This ID is preserved between app upgrades,
     /// is saved and restored during the standard application backup process, and is removed at uninstall or
-    /// when AEPTarget::resetExperience is called.
-    /// - Parameter thirdPartyId: a string pointer containing the value of the third party id (custom visitor id)
+    /// when AEPTarget.resetExperience is called.
+    /// - Parameter id: a string pointer containing the value of the third party id (custom visitor id)
     static func setThirdPartyId(_ id: String?) {
         let eventData = [TargetConstants.EventDataKeys.THIRD_PARTY_ID: id ?? ""]
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
@@ -150,7 +150,7 @@ import Foundation
     /// Gets the custom visitor ID for Target
     /// This ID will be reset  when the `resetExperience()` API is called.
     /// - Parameter completion:  the callback `closure` will be invoked to return the thirdPartyId value or `nil` if no third-party ID is set
-    static func getThirdPartyId(completion: @escaping (String?, Error?) -> Void) {
+    static func getThirdPartyId(_ completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: nil)
         MobileCore.dispatch(event: event) { responseEvent in
             guard let responseEvent = responseEvent else {
@@ -180,10 +180,10 @@ import Foundation
     /// Mobile SDK after a successful call to prefetch content or load requests.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application
-    /// backup process, and is removed at uninstall or when AEPTarget::resetExperience is called.
+    /// backup process, and is removed at uninstall or when AEPTarget.resetExperience is called.
     ///
     /// - Parameter completion:  the callback `closure` invoked with the current tnt id or `nil` if no tnt id is set.
-    static func getTntId(completion: @escaping (String?, Error?) -> Void) {
+    static func getTntId(_ completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.REQUEST_IDENTITY, type: EventType.target, source: EventSource.requestIdentity, data: nil)
         MobileCore.dispatch(event: event) { responseEvent in
             guard let responseEvent = responseEvent else {
@@ -228,7 +228,7 @@ import Foundation
     /// Set the Target preview URL to be displayed when the preview mode is restarted.
     /// - Parameter deeplink:  the URL which will be set for preview restart
     @objc(setPreviewRestartDeepLink:)
-    static func setPreviewRestartDeepLink(deeplink: URL) {
+    static func setPreviewRestartDeepLink(_ deeplink: URL) {
         let eventData = [TargetConstants.EventDataKeys.PREVIEW_RESTART_DEEP_LINK: deeplink.absoluteString]
         let event = Event(name: TargetConstants.EventName.SET_PREVIEW_DEEPLINK, type: EventType.target, source: EventSource.requestContent, data: eventData)
         MobileCore.dispatch(event: event)
@@ -236,10 +236,10 @@ import Foundation
 
     /// Sends a display notification to Target for given prefetched mboxes. This helps Target record location display events.
     /// - Parameters:
-    ///   - mboxNames:  (required) an array of displayed location names
+    ///   - names:  (required) an array of displayed location names
     ///   - targetParameters: for the displayed location
     @objc(displayedLocations:withTargetParameters:)
-    static func displayedLocations(names: [String], targetParameters: TargetParameters?) {
+    static func displayedLocations(_ names: [String], targetParameters: TargetParameters? = nil) {
         if names.isEmpty {
             Log.error(label: LOG_TAG, "Failed to send display notification, List of Mbox names must not be empty.")
             return
@@ -260,10 +260,10 @@ import Foundation
     /// location before, indicating that the mbox was viewed. This request helps Target record the clicked event for the given location or mbox.
     ///
     /// - Parameters:
-    ///   - mboxName:  NSString value representing the name for location/mbox
+    ///   - mboxName:  String value representing the name for location/mbox
     ///   - targetParameters:  a TargetParameters object containing parameters for the location clicked
     @objc(clickedLocation:withTargetParameters:)
-    static func clickedLocation(name: String, targetParameters: TargetParameters?) {
+    static func clickedLocation(_ name: String, targetParameters: TargetParameters? = nil) {
         if name.isEmpty {
             Log.error(label: LOG_TAG, "Failed to send click notification, Mbox name must not be empty or nil.")
             return

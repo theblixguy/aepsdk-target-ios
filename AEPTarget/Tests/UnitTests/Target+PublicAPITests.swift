@@ -52,12 +52,12 @@ class TargetPublicAPITests: XCTestCase {
         }
 
         Target.prefetchContent(
-            prefetchObjectArray: [
+            [
                 TargetPrefetch(name: "Drink_1", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
                 TargetPrefetch(name: "Drink_2", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
             ],
-            targetParameters: TargetParameters(profileParameters: ["name": "Smith"]),
-            completion: nil
+            with: TargetParameters(profileParameters: ["name": "Smith"]),
+            nil
         )
         wait(for: [expectation], timeout: 1)
     }
@@ -65,7 +65,7 @@ class TargetPublicAPITests: XCTestCase {
     func testPrefetchContent_with_empty_PrefetchObjectArray() throws {
         let expectation = XCTestExpectation(description: "error callback")
         expectation.assertForOverFulfill = true
-        Target.prefetchContent(prefetchObjectArray: [], targetParameters: TargetParameters(profileParameters: ["name": "Smith"])) { error in
+        Target.prefetchContent([], with: TargetParameters(profileParameters: ["name": "Smith"])) { error in
             guard let error = error as? TargetError else {
                 return
             }
@@ -82,11 +82,11 @@ class TargetPublicAPITests: XCTestCase {
             EventHub.shared.dispatch(event: event.createResponseEvent(name: "", type: "", source: "", data: ["prefetcherror": "unexpected error"]))
         }
         Target.prefetchContent(
-            prefetchObjectArray: [
+            [
                 TargetPrefetch(name: "Drink_1", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
                 TargetPrefetch(name: "Drink_2", targetParameters: TargetParameters(profileParameters: ["mbox-parameter-key1": "mbox-parameter-value1"])),
             ],
-            targetParameters: TargetParameters(profileParameters: ["name": "Smith"])
+            with: TargetParameters(profileParameters: ["name": "Smith"])
         ) { error in
             guard let error = error as? TargetError else {
                 return
@@ -118,7 +118,7 @@ class TargetPublicAPITests: XCTestCase {
             expectation.fulfill()
         }
 
-        Target.displayedLocations(names: ["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        Target.displayedLocations(["Drink_1", "Drink_2"], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
         wait(for: [expectation], timeout: 1)
     }
 
@@ -131,7 +131,7 @@ class TargetPublicAPITests: XCTestCase {
             }
         }
 
-        Target.displayedLocations(names: [], targetParameters: nil)
+        Target.displayedLocations([], targetParameters: nil)
         XCTAssertFalse(dispatchedEvent)
     }
 
@@ -144,7 +144,7 @@ class TargetPublicAPITests: XCTestCase {
             }
         }
 
-        Target.clickedLocation(name: "", targetParameters: nil)
+        Target.clickedLocation("", targetParameters: nil)
         XCTAssertFalse(dispatchedEvent)
     }
 
@@ -169,7 +169,7 @@ class TargetPublicAPITests: XCTestCase {
             expectation.fulfill()
         }
 
-        Target.clickedLocation(name: "Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        Target.clickedLocation("Drink_1", targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
         wait(for: [expectation], timeout: 1)
     }
 
@@ -238,10 +238,10 @@ class TargetPublicAPITests: XCTestCase {
             event in
             MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: [TargetConstants.EventDataKeys.THIRD_PARTY_ID: "mockId"]))
         }
-        Target.getThirdPartyId(completion: { id, _ in
+        Target.getThirdPartyId { id, _ in
             XCTAssertEqual(id, "mockId")
             expectation.fulfill()
-        })
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -253,11 +253,11 @@ class TargetPublicAPITests: XCTestCase {
             event in
             MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: nil))
         }
-        Target.getThirdPartyId(completion: { id, error in
+        Target.getThirdPartyId { id, error in
             XCTAssertNil(id)
             XCTAssertNotNil(error)
             expectation.fulfill()
-        })
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -269,10 +269,10 @@ class TargetPublicAPITests: XCTestCase {
             event in
             MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: [TargetConstants.EventDataKeys.TNT_ID: "mockId"]))
         }
-        Target.getTntId(completion: { id, _ in
+        Target.getTntId { id, _ in
             XCTAssertEqual(id, "mockId")
             expectation.fulfill()
-        })
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -284,11 +284,11 @@ class TargetPublicAPITests: XCTestCase {
             event in
             MobileCore.dispatch(event: event.createResponseEvent(name: TargetConstants.EventName.IDENTITY_RESPONSE, type: EventType.target, source: EventSource.responseIdentity, data: nil))
         }
-        Target.getTntId(completion: { id, error in
+        Target.getTntId { id, error in
             XCTAssertNil(id)
             XCTAssertNotNil(error)
             expectation.fulfill()
-        })
+        }
         wait(for: [expectation], timeout: 1)
     }
 
@@ -299,7 +299,7 @@ class TargetPublicAPITests: XCTestCase {
                 dispatchedRetrieveEvent = true
             }
         }
-        Target.retrieveLocationContent(requests: [], targetParameters: nil)
+        Target.retrieveLocationContent([])
         XCTAssertFalse(dispatchedRetrieveEvent)
     }
 
@@ -317,7 +317,7 @@ class TargetPublicAPITests: XCTestCase {
             }
         }
 
-        Target.retrieveLocationContent(requests: [request], targetParameters: nil)
+        Target.retrieveLocationContent([request])
 
         wait(for: [expectation], timeout: 1)
         XCTAssertFalse(dispatchedRetrieveEvent)
@@ -365,7 +365,7 @@ class TargetPublicAPITests: XCTestCase {
             expectation2.fulfill()
         }
 
-        Target.retrieveLocationContent(requests: [tr1, tr2], targetParameters: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
+        Target.retrieveLocationContent([tr1, tr2], with: TargetParameters(parameters: ["mbox_parameter_key": "mbox_parameter_value"], profileParameters: ["name": "Smith"]))
 
         wait(for: [expectation1, expectation2], timeout: 1)
     }
@@ -397,11 +397,11 @@ class TargetPublicAPITests: XCTestCase {
                 return
             }
 
-            XCTAssertEqual("com.adobe.targetpreview://?at_preview_token=yOrxbuHy8B3o80U0bnL8N5b1pDr5x7_lW-haGSc5zt4", eventData["restartdeeplink"] as? String ?? "")
+            XCTAssertEqual("com.adobe.targetpreview://?at_preview_token=123_xggdfeTGa", eventData["restartdeeplink"] as? String ?? "")
             expectation.fulfill()
         }
 
-        Target.setPreviewRestartDeepLink(deeplink: URL(string: "com.adobe.targetpreview://?at_preview_token=yOrxbuHy8B3o80U0bnL8N5b1pDr5x7_lW-haGSc5zt4")!)
+        Target.setPreviewRestartDeepLink(URL(string: "com.adobe.targetpreview://?at_preview_token=123_xggdfeTGa")!)
         wait(for: [expectation], timeout: 1)
     }
 }
