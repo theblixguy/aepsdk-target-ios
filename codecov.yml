@@ -20,7 +20,8 @@ coverage:
 
   ignore:
     - "./AEPTarget/Tests/.*"
-
+    - "./AEPTargetDemoApp/.*"
+    - "./AEPTargetDemoObjCApp/.*"
 parsers:
   gcov:
     branch_detection:
