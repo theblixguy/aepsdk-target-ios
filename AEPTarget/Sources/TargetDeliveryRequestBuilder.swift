@@ -83,7 +83,7 @@ enum TargetDeliveryRequestBuilder {
         let mboxParameters = getMboxParameters(mboxParameters: targetParameters?.parameters, lifecycleContextData: lifecycleContextData)
 
         // Set mbox
-        var mbox: Mbox
+        let mbox: Mbox
         if let mboxState = cachedMboxJson?[TargetConstants.TargetJson.Mbox.STATE] as? String, !mboxState.isEmpty {
             mbox = Mbox(name: mboxName, state: mboxState)
         } else {
