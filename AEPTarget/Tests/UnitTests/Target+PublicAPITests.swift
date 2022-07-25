@@ -339,6 +339,44 @@ class TargetPublicAPITests: XCTestCase {
         wait(for: [expectation], timeout: 1)
     }
     
+    func testSetTntId() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a Target request identity event for setting the tnt Id.")
+        expectation.assertForOverFulfill = true
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.eventListeners.clear()
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: "com.adobe.eventType.target", source: "com.adobe.eventSource.requestIdentity") { event in
+            guard let eventData = event.data else {
+                XCTFail("Event data is nil.")
+                expectation.fulfill()
+                return
+            }
+            let id = eventData["tntid"] as? String
+            XCTAssertEqual(id, "mockTntId")
+            expectation.fulfill()
+        }
+
+        Target.setTntId("mockTntId")
+        wait(for: [expectation], timeout: 1)
+    }
+
+    func testSetTntId_withNil() throws {
+        let expectation = XCTestExpectation(description: "Should dispatch a Target request identity event for setting the tnt Id.")
+        expectation.assertForOverFulfill = true
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.eventListeners.clear()
+        EventHub.shared.getExtensionContainer(MockExtension.self)?.registerListener(type: "com.adobe.eventType.target", source: "com.adobe.eventSource.requestIdentity") { event in
+            guard let eventData = event.data else {
+                XCTFail("Event data is nil.")
+                expectation.fulfill()
+                return
+            }
+            let id = eventData["tntid"] as? String
+            XCTAssertEqual(id, "")
+            expectation.fulfill()
+        }
+
+        Target.setTntId(nil)
+        wait(for: [expectation], timeout: 1)
+    }
+    
     func testGetTntId() throws {
         let expectation = XCTestExpectation(description: "Should dispatch a GetTntId event")
         expectation.assertForOverFulfill = true

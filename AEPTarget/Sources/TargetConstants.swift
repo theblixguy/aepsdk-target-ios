@@ -19,6 +19,7 @@ enum TargetConstants {
     static let DATASTORE_NAME = EXTENSION_NAME
     static let DEFAULT_SESSION_TIMEOUT: Int = 30 * 60 // 30 mins
     static let DELIVERY_API_URL_BASE = "https://%@/rest/v1/delivery/?client=%@&sessionId=%@"
+    static let EDGE_HOST_BASE = "mboxedge%@"
     static let API_URL_HOST_BASE = "%@.tt.omtrdc.net"
     static let HEADER_CONTENT_TYPE = "Content-Type"
     static let HEADER_CONTENT_TYPE_JSON = "application/json"
@@ -164,6 +165,7 @@ enum TargetConstants {
         static let GET_THIRDPARTY_ID = "TargetGetThirdPartyIdentifier"
         static let SET_THIRDPARTY_ID = "TargetSetThirdPartyIdentifier"
         static let GET_TNT_ID = "TargetGetTnTIdentifier"
+        static let SET_TNT_ID = "TargetSetTnTIdentifier"
         static let GET_SESSION_ID = "TargetGetSessionIdentifier"
         static let SET_SESSION_ID = "TargetSetSessionIdentifier"
         static let REQUEST_RESET = "TargetRequestReset"

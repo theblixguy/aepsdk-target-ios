@@ -48,7 +48,7 @@ class TargetStateTests: XCTestCase {
             "global.privacy": "optedin",
         ])
         XCTAssertEqual(NSDictionary(dictionary: ["target.clientCode": "code_456", "global.privacy": "optedin"]), targetState.storedConfigurationSharedState as NSDictionary?)
-        XCTAssertEqual(targetState.edgeHost, "")
+        XCTAssertNil(targetState.edgeHost)
     }
 
     func testPrivacyStatus() {

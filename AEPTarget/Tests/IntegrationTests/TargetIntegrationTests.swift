@@ -919,7 +919,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [getNewSessionIdExpectation], timeout: 1)
     }
 
-    func testGetTntId() {
+    func testTntId() {
         // init mobile SDK, register extensions
         let initExpectation = XCTestExpectation(description: "init extensions")
         MobileCore.setLogLevel(.trace)
@@ -928,24 +928,36 @@ class TargetIntegrationTests: XCTestCase {
         }
         wait(for: [initExpectation], timeout: 1)
 
-        // update the configuration's shared state
+        // update the configuration shared state
         MobileCore.updateConfigurationWith(configDict: [
             "experienceCloud.org": "orgid",
             "experienceCloud.server": "test.com",
             "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
+            "target.server": "acopprod3.tt.omtrdc.net",
             "target.clientCode": "acopprod3",
         ])
 
-        let getErrorExpectation = XCTestExpectation(description: "init extensions")
+        let getErrorExpectation = XCTestExpectation(description: "error expectation")
         Target.getTntId { id, error in
             if id == nil, let _ = error {
                 getErrorExpectation.fulfill()
                 return
             }
-            XCTFail("should return error if no tnt id exists")
+            XCTFail("should return error if no tnt Id exists")
         }
         wait(for: [getErrorExpectation], timeout: 1)
+
+        Target.setTntId("66E5C681-4F70-41A2-86AE-F1E151443B10.35_0")
+        let getTntIdExpectation = XCTestExpectation(description: "get tnt Id expectation")
+        Target.getTntId { id, error in
+            if error == nil, let id = id {
+                XCTAssertEqual("66E5C681-4F70-41A2-86AE-F1E151443B10.35_0", id)
+                getTntIdExpectation.fulfill()
+                return
+            }
+            XCTFail("should return the stored tnt Id if it exists")
+        }
+        wait(for: [getTntIdExpectation], timeout: 1)
     }
 
     func testResetExperience() {

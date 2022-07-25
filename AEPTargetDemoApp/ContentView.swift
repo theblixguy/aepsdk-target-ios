@@ -17,9 +17,11 @@ import SwiftUI
 
 struct ContentView: View {
     @State var thirdPartyId: String = ""
-    @State var sessionId: String = ""
     @State var updatedThirdPartyId: String = ""
+    @State var sessionId: String = ""
+    @State var updatedsessionId: String = ""
     @State var tntId: String = ""
+    @State var updatedTntId: String = ""
     @State var griffonUrl: String = TestConstants.GRIFFON_URL
     @State var fullscreenMessage: FullscreenPresentable?
     var body: some View {
@@ -62,8 +64,7 @@ struct ContentView: View {
                         getSessionId()
                     }.padding(10)
 
-                    TextField("Please enter Session Id", text: $sessionId).multilineTextAlignment(.center)
-
+                    TextField("Please enter Session Id", text: $updatedsessionId).multilineTextAlignment(.center)
                     Button("Set Session Id") {
                         setSessionId()
                     }.padding(10)
@@ -72,9 +73,8 @@ struct ContentView: View {
                     Button("Get Third Party Id") {
                         getThirdPartyId()
                     }.padding(10)
-
+                    
                     TextField("Please enter thirdPartyId", text: $updatedThirdPartyId).multilineTextAlignment(.center)
-
                     Button("Set Third Party Id") {
                         setThirdPartyId()
                     }.padding(10)
@@ -83,6 +83,11 @@ struct ContentView: View {
                     Text("Tnt id - \(tntId)")
                     Button("Get Tnt Id") {
                         getTntId()
+                    }.padding(10)
+                    
+                    TextField("Please enter tntId", text: $updatedTntId).multilineTextAlignment(.center)
+                    Button("Set Tnt Id") {
+                        setTntId()
                     }.padding(10)
 
                     Button("Clear prefetch cache") {
@@ -189,7 +194,7 @@ struct ContentView: View {
     }
     
     func setSessionId() {
-        Target.setSessionId(sessionId)
+        Target.setSessionId(updatedsessionId)
     }
     
     func getThirdPartyId() {
@@ -218,6 +223,10 @@ struct ContentView: View {
         }
     }
 
+    func setTntId() {
+        Target.setTntId(updatedTntId)
+    }
+    
     func enterPreview() {
         MobileCore.collectLaunchInfo(["adb_deeplink": TestConstants.DEEP_LINK])
     }

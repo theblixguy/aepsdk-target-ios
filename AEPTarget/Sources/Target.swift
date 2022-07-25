@@ -85,6 +85,11 @@ public class Target: NSObject, Extension {
                 return
             }
 
+            if let tntId = eventData[TargetConstants.EventDataKeys.TNT_ID] as? String {
+                setTntId(tntId: tntId, event: event)
+                return
+            }
+
             if let sessionId = eventData[TargetConstants.EventDataKeys.TARGET_SESSION_ID] as? String {
                 setSessionId(sessionId: sessionId)
                 return
@@ -215,7 +220,7 @@ public class Target: NSObject, Extension {
                 self.dispatchPrefetchErrorEvent(triggerEvent: event, errorMessage: "Target response parser initialization failed")
                 return
             }
-            if let tntId = deliveryResponse.tntId { self.setTntId(tntId: tntId) }
+            if let tntId = deliveryResponse.tntId { self.setTntIdInternal(tntId: tntId) }
             if let edgeHost = deliveryResponse.edgeHost { self.targetState.updateEdgeHost(edgeHost) }
             self.createSharedState(data: self.targetState.generateSharedState(), event: event)
 
@@ -453,7 +458,7 @@ public class Target: NSObject, Extension {
             return
         }
 
-        if let tntId = response.tntId { setTntId(tntId: tntId) }
+        if let tntId = response.tntId { setTntIdInternal(tntId: tntId) }
         if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
         createSharedState(data: targetState.generateSharedState(), event: event)
     }
@@ -688,7 +693,7 @@ public class Target: NSObject, Extension {
     /// - Parameters:
     ///     - configurationSharedState: `Dictionary` Configuration shared state
     private func resetIdentity() {
-        setTntId(tntId: nil)
+        setTntIdInternal(tntId: nil)
         setThirdPartyIdInternal(thirdPartyId: nil)
         targetState.updateEdgeHost(nil)
         resetSession()
@@ -730,22 +735,54 @@ public class Target: NSObject, Extension {
         targetState.updateSessionTimestamp()
     }
 
-    /// Saves the tntId to the Target DataStore or remove its key in the dataStore if the tntId is nil.
-    /// If the tntId ID is changed.
+    /// Saves the tntId in the SDK and creates a shared state to share the persisted identifier.
+    ///
     /// - Parameters:
-    ///     - tntId: new tntId that needs to be set
-    private func setTntId(tntId: String?) {
+    ///     - tntId: string containing the new tntId to be set in the SDK.
+    ///     - event: incoming event containing the new tntId.
+    private func setTntId(tntId: String, event: Event) {
+        guard let eventData = event.data as [String: Any]? else {
+            Log.error(label: Target.LOG_TAG, "Unable to set tnt Id, event data is nil.")
+            return
+        }
+
+        setTntIdInternal(tntId: tntId)
+        createSharedState(data: eventData, event: event)
+    }
+
+    /// Saves the tntId and the edge host value derived from it to the Target data store.
+    ///
+    /// If a valid tntId is provided and the privacy status is opted out or the provided tntId is same as the existing value, then the method returns with no further action.
+    /// If nil value is provided for the tntId, then both tntId and edge host values are removed from the Target data store.
+    ///
+    /// - Parameters:
+    ///     - tntId: string containing tntId to be set in the SDK.
+    private func setTntIdInternal(tntId: String?) {
         // do not set identifier if privacy is opt-out and the id is not being cleared
         if targetState.privacyStatusIsOptOut, let tntId = tntId, !tntId.isEmpty {
-            Log.debug(label: Target.LOG_TAG, "setTntId - Cannot update Target tntId due to opt out privacy status.")
+            Log.debug(label: Target.LOG_TAG, "setTntIdInternal - Cannot update Target tntId due to opt out privacy status.")
             return
         }
 
-        if tntIdValuesAreEqual(newTntId: tntId, oldTntId: targetState.tntId) {
-            Log.debug(label: Target.LOG_TAG, "setTntId - New tntId value is same as the existing tntId \(String(describing: targetState.tntId)).")
+        if tntId == targetState.tntId {
+            Log.debug(label: Target.LOG_TAG, "setTntIdInternal - Won't update Target tntId as provided value is same as the existing tntId value \(String(describing: tntId)).")
             return
         }
 
+        if
+            let locationHintRange = tntId?.range(of: "(?<=[0-9A-Za-z-]\\.)([\\d][^\\D]*)(?=_)", options: .regularExpression),
+            let locationHint = tntId?[locationHintRange],
+            !locationHint.isEmpty
+        {
+            let edgeHost = String(format: TargetConstants.API_URL_HOST_BASE, String(format: TargetConstants.EDGE_HOST_BASE, String(locationHint)))
+            Log.debug(label: Target.LOG_TAG, "setTntIdInternal - The edge host value derived from the given tntId \(String(describing: tntId)) is \(edgeHost).")
+            targetState.updateEdgeHost(edgeHost)
+        } else {
+            Log.debug(label: Target.LOG_TAG, "setTntIdInternal - The edge host value cannot be derived from the given tntId \(String(describing: tntId)) and it is removed from the data store.")
+            targetState.updateEdgeHost(nil)
+        }
+
+        Log.trace(label: Target.LOG_TAG, "setTntIdInternal - Updating tntId with value \(String(describing: tntId)).")
         targetState.updateTntId(tntId)
     }
 
@@ -770,26 +807,6 @@ public class Target: NSObject, Extension {
     private func resetSession() {
         targetState.updateSessionId("")
         targetState.updateSessionTimestamp(reset: true)
-    }
-
-    /// Compares if the given two tntID's are equal. tntId is a concatenation of {tntId}.{tnt_sessionId}
-    /// false is returned when tntID's are different.
-    /// true is returned when tntID's are same.
-    /// - Parameters:
-    ///     - newTntId: new tntId
-    ///     - oldTntId: old tntId
-    private func tntIdValuesAreEqual(newTntId: String?, oldTntId: String?) -> Bool {
-        if newTntId == oldTntId {
-            return true
-        }
-
-        if let oldTntId = oldTntId, let newTntId = newTntId {
-            let oldId = String(oldTntId.split(separator: ".").first ?? Substring(oldTntId))
-            let newId = String(newTntId.split(separator: ".").first ?? Substring(newTntId))
-            return oldId == newId
-        }
-
-        return false
     }
 
     /// Runs the default callback for each of the request in the list.
