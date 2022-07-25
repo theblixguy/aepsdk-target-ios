@@ -875,6 +875,49 @@ class TargetIntegrationTests: XCTestCase {
         }
         wait(for: [getThirdPartyIdExpectation], timeout: 1)
     }
+    
+    func testSessionId() {
+        // init mobile SDK, register extensions
+        let initExpectation = XCTestExpectation(description: "init extensions")
+        MobileCore.setLogLevel(.trace)
+        MobileCore.registerExtensions([Target.self]) {
+            initExpectation.fulfill()
+        }
+        wait(for: [initExpectation], timeout: 1)
+
+        // update the configuration shared state
+        MobileCore.updateConfigurationWith(configDict: [
+            "experienceCloud.org": "orgid",
+            "experienceCloud.server": "test.com",
+            "global.privacy": "optedin",
+            "target.server": "acopprod3.tt.omtrdc.net",
+            "target.clientCode": "acopprod3",
+        ])
+
+        let getSessionIdExpectation = XCTestExpectation(description: "get session Id")
+        Target.getSessionId { id, error in
+            if error == nil, let id = id {
+                XCTAssertNotEqual("", id)
+                getSessionIdExpectation.fulfill()
+                return
+            }
+            XCTFail("Should return a valid Target session Id.")
+        }
+        wait(for: [getSessionIdExpectation], timeout: 1)
+        
+        Target.setSessionId("mockSessionId")
+        
+        let getNewSessionIdExpectation = XCTestExpectation(description: "get new session Id")
+        Target.getSessionId { id, error in
+            if error == nil, let id = id {
+                XCTAssertEqual("mockSessionId", id)
+                getNewSessionIdExpectation.fulfill()
+                return
+            }
+            XCTFail("Should return the previously set session Id.")
+        }
+        wait(for: [getNewSessionIdExpectation], timeout: 1)
+    }
 
     func testGetTntId() {
         // init mobile SDK, register extensions

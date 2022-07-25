@@ -137,11 +137,13 @@ class TargetStateTests: XCTestCase {
             "target.sessionTimeout": 1800,
         ])
 
-        let sessionId = targetState.sessionId
-        XCTAssertFalse(sessionId.isEmpty)
+        let sessionId = "mockSessionId"
+        targetState.updateSessionId(sessionId)
+        XCTAssertEqual(sessionId, targetState.sessionId)
         XCTAssertEqual(sessionId, targetDataStore.getString(key: "session.id"))
 
-        targetState.resetSessionId()
+        targetState.updateSessionId("")
+
         let newSessionId = targetState.sessionId
         XCTAssertFalse(newSessionId.isEmpty)
         XCTAssertEqual(newSessionId, targetDataStore.getString(key: "session.id"))
