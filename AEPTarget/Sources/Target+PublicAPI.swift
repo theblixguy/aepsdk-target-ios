@@ -150,7 +150,7 @@ import Foundation
     /// - Parameter id: a string pointer containing the value of the third party id (custom visitor id)
     static func setThirdPartyId(_ id: String?) {
         let eventData = [TargetConstants.EventDataKeys.THIRD_PARTY_ID: id ?? ""]
-        let event = Event(name: TargetConstants.EventName.SET_THIRDPARTY_ID, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
+        let event = Event(name: TargetConstants.EventName.SET_THIRD_PARTY_ID, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
         MobileCore.dispatch(event: event)
     }
 
@@ -158,7 +158,7 @@ import Foundation
     /// This ID will be reset  when the `resetExperience()` API is called.
     /// - Parameter completion:  the callback `closure` will be invoked to return the thirdPartyId value or `nil` if no third-party ID is set
     static func getThirdPartyId(_ completion: @escaping (String?, Error?) -> Void) {
-        let event = Event(name: TargetConstants.EventName.GET_THIRDPARTY_ID, type: EventType.target, source: EventSource.requestIdentity, data: nil)
+        let event = Event(name: TargetConstants.EventName.GET_THIRD_PARTY_ID, type: EventType.target, source: EventSource.requestIdentity, data: nil)
         MobileCore.dispatch(event: event) { responseEvent in
             guard let responseEvent = responseEvent else {
                 let error = "Request to get third party id failed, \(TargetError.ERROR_TIMEOUT)"
@@ -184,8 +184,8 @@ import Foundation
 
     /// Sets the Target session identifier.
     ///
-    /// The provided session Id is persisted in the SDK for a period defined by `target.sessionTimeout` configuration setting. If the provided sessionId is nil or empty, or if the session timeout happens,
-    /// the SDK will generate a new session Id and use it in the subsequent Target requests.
+    /// The provided session Id is persisted in the SDK for a period defined by `target.sessionTimeout` configuration setting.
+    /// If the provided sessionId is nil or empty or if the privacy status is opted out, the SDK will remove the session Id value from persistence.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application
     /// backup process, and is removed at uninstall, upon privacy status update to opt out or when AEPTarget.resetExperience is called.
@@ -199,8 +199,8 @@ import Foundation
 
     /// Gets the Target session identifier.
     ///
-    /// The session Id is generated locally in the SDK upon initial Target request and
-    /// persisted for a period defined by `target.sessionTimeout` configuration setting.
+    /// The session Id is generated locally in the SDK upon initial Target request and persisted for a period defined by `target.sessionTimeout` configuration setting.
+    /// If the session timeout happens upon a subsequent Target request, a new sessionId will be generated for use in the request and persisted in the SDK.
     ///
     /// - Parameter completion: the callback `closure` invoked with the current session Id or `nil` if there was an error retrieving it.
     static func getSessionId(_ completion: @escaping (String?, Error?) -> Void) {
@@ -230,10 +230,10 @@ import Foundation
 
     /// Sets the Target user identifier.
     ///
-    /// The provided Tnt Id is persisted in the SDK and attached to all subsequent Target requests. It is used to
+    /// The provided Tnt Id is persisted in the SDK and attached to subsequent Target requests. It is used to
     /// derive the edge host value in the SDK, which is also persisted and used in future Target requests.
     ///
-    /// If the provided Tnt Id is nil or empty, the SDK will remove the Tnt Id and edge host values from persistence.
+    /// If the provided Tnt Id is nil or empty or if the privacy status is opted out, the SDK will remove the Tnt Id and edge host values from persistence.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
     /// and is removed at uninstall, upon privacy status update to opt out or when AEPTarget.resetExperience is called.
@@ -246,8 +246,9 @@ import Foundation
     }
 
     /// Gets the Target user identifier.
-    /// Retrieves the TnT ID returned by the Target server for this visitor. The TnT ID is set to the
-    /// Mobile SDK after a successful call to prefetch content or load requests.
+    ///
+    /// The tntId is returned in the network response from Target after a successful call to `prefetchContent` API or `retrieveLocationContent` API, which is then persisted in the SDK.
+    /// The persisted tntId is used in subsequent Target requests until a different tntId is returned from Target or a new tntId is set using `setTntId` API.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application
     /// backup process, and is removed at uninstall or when AEPTarget.resetExperience is called.
