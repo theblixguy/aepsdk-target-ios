@@ -184,13 +184,13 @@ import Foundation
 
     /// Sets the Target session identifier.
     ///
-    /// The provided session Id is persisted in the SDK for a period defined by `target.sessionTimeout` configuration setting.
-    /// If the provided sessionId is nil or empty or if the privacy status is opted out, the SDK will remove the session Id value from the persistence.
+    /// The provided session ID is persisted in the SDK for a period defined by `target.sessionTimeout` configuration setting.
+    /// If the provided session ID is nil or empty or if the privacy status is opted out, the SDK will remove the session ID value from the persistence.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
     /// and is removed at uninstall, upon privacy status update to opted out or when the AEPTarget.resetExperience API is called.
     ///
-    /// - Parameter id: a string containing the value of the Target session Id to be set in the SDK.
+    /// - Parameter id: a string containing the value of the Target session ID to be set in the SDK.
     static func setSessionId(_ id: String?) {
         let eventData = [TargetConstants.EventDataKeys.TARGET_SESSION_ID: id ?? ""]
         let event = Event(name: TargetConstants.EventName.SET_SESSION_ID, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
@@ -199,27 +199,27 @@ import Foundation
 
     /// Gets the Target session identifier.
     ///
-    /// The session Id is generated locally in the SDK upon initial Target request and persisted for a period defined by `target.sessionTimeout` configuration setting.
-    /// If the session timeout happens upon a subsequent Target request, a new session Id will be generated for use in the request and persisted in the SDK.
+    /// The session ID is generated locally in the SDK upon initial Target request and persisted for a period defined by `target.sessionTimeout` configuration setting.
+    /// If the session timeout happens upon a subsequent Target request, a new session ID will be generated for use in the request and persisted in the SDK.
     ///
-    /// - Parameter completion: the callback `closure` invoked with the current session Id, or `nil` if there was an error retrieving it.
+    /// - Parameter completion: the callback `closure` invoked with the current session ID, or `nil` if there was an error retrieving it.
     static func getSessionId(_ completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.GET_SESSION_ID, type: EventType.target, source: EventSource.requestIdentity, data: nil)
         MobileCore.dispatch(event: event) { responseEvent in
             guard let responseEvent = responseEvent else {
-                let error = "Request to get Target session Id failed with error, \(TargetError.ERROR_TIMEOUT)"
+                let error = "Request to get Target session ID failed with error, \(TargetError.ERROR_TIMEOUT)"
                 completion(nil, TargetError(message: error))
                 Log.warning(label: Target.LOG_TAG, error)
                 return
             }
             guard let eventData = responseEvent.data else {
-                let error = "Unable to handle response for session Id get request, event data is nil."
+                let error = "Unable to handle response, event data is nil."
                 completion(nil, TargetError(message: error))
                 Log.warning(label: Target.LOG_TAG, error)
                 return
             }
             guard let sessionId = eventData[TargetConstants.EventDataKeys.TARGET_SESSION_ID] as? String else {
-                let error = "Unable to handle response for session Id get request, sessionId is not available."
+                let error = "Unable to handle response, session ID is not available."
                 completion(nil, TargetError(message: error))
                 Log.warning(label: Target.LOG_TAG, error)
                 return
@@ -230,15 +230,15 @@ import Foundation
 
     /// Sets the Target user identifier.
     ///
-    /// The provided tnt Id is persisted in the SDK and attached to subsequent Target requests. It is used to
+    /// The provided tnt ID is persisted in the SDK and attached to subsequent Target requests. It is used to
     /// derive the edge host value in the SDK, which is also persisted and used in future Target requests.
     ///
-    /// If the provided tnt Id is nil or empty or if the privacy status is opted out, the SDK will remove the tnt Id and edge host values from the persistence.
+    /// If the provided tnt ID is nil or empty or if the privacy status is opted out, the SDK will remove the tnt ID and edge host values from the persistence.
     ///
     /// This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
     /// and is removed at uninstall, upon privacy status update to opted out or when the AEPTarget.resetExperience API is called.
     ///
-    /// - Parameter id: a string containing the value of the tnt Id to be set in the SDK.
+    /// - Parameter id: a string containing the value of the tnt ID to be set in the SDK.
     static func setTntId(_ id: String?) {
         let eventData = [TargetConstants.EventDataKeys.TNT_ID: id ?? ""]
         let event = Event(name: TargetConstants.EventName.SET_TNT_ID, type: EventType.target, source: EventSource.requestIdentity, data: eventData)
@@ -247,15 +247,15 @@ import Foundation
 
     /// Gets the Target user identifier.
     ///
-    /// The tnt Id is returned in the network response from Target after a successful call to `prefetchContent` API or `retrieveLocationContent` API, which is then persisted in the SDK.
-    /// The persisted tnt Id is used in subsequent Target requests until a different tnt Id is returned from Target, or a new tnt Id is set using `setTntId` API.
+    /// The tnt ID is returned in the network response from Target after a successful call to `prefetchContent` API or `retrieveLocationContent` API, which is then persisted in the SDK.
+    /// The persisted tnt ID is used in subsequent Target requests until a different tnt ID is returned from Target, or a new tnt ID is set using `setTntId` API.
     ///
-    /// - Parameter completion:  the callback `closure` invoked with the current tnt Id, or `nil` if there was an error retrieving it.
+    /// - Parameter completion:  the callback `closure` invoked with the current tnt ID, or `nil` if there was an error retrieving it.
     static func getTntId(_ completion: @escaping (String?, Error?) -> Void) {
         let event = Event(name: TargetConstants.EventName.GET_TNT_ID, type: EventType.target, source: EventSource.requestIdentity, data: nil)
         MobileCore.dispatch(event: event) { responseEvent in
             guard let responseEvent = responseEvent else {
-                let error = "Request to get tnt Id failed, \(TargetError.ERROR_TIMEOUT)"
+                let error = "Request to get tnt ID failed, \(TargetError.ERROR_TIMEOUT)"
                 completion(nil, TargetError(message: error))
                 Log.warning(label: Target.LOG_TAG, error)
                 return
@@ -267,7 +267,7 @@ import Foundation
                 return
             }
             guard let tntId = eventData[TargetConstants.EventDataKeys.TNT_ID] as? String else {
-                let error = "Unable to handle response, tnt Id is not available."
+                let error = "Unable to handle response, tnt ID is not available."
                 completion(nil, TargetError(message: error))
                 Log.warning(label: Target.LOG_TAG, error)
                 return
