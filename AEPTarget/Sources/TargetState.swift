@@ -123,7 +123,7 @@ class TargetState {
         }
         if
             let newClientCode = configuration[TargetConstants.Configuration.SharedState.Keys.TARGET_CLIENT_CODE] as? String,
-            newClientCode != clientCode
+            storedConfigurationSharedState != nil, newClientCode != clientCode
         {
             updateEdgeHost(nil)
         }

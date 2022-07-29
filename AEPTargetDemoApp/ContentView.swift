@@ -19,7 +19,7 @@ struct ContentView: View {
     @State var thirdPartyId: String = ""
     @State var updatedThirdPartyId: String = ""
     @State var sessionId: String = ""
-    @State var updatedsessionId: String = ""
+    @State var updatedSessionId: String = ""
     @State var tntId: String = ""
     @State var updatedTntId: String = ""
     @State var griffonUrl: String = TestConstants.GRIFFON_URL
@@ -64,7 +64,7 @@ struct ContentView: View {
                         getSessionId()
                     }.padding(10)
 
-                    TextField("Please enter Session Id", text: $updatedsessionId).multilineTextAlignment(.center)
+                    TextField("Please enter Session Id", text: $updatedSessionId).multilineTextAlignment(.center)
                     Button("Set Session Id") {
                         setSessionId()
                     }.padding(10)
@@ -194,7 +194,7 @@ struct ContentView: View {
     }
     
     func setSessionId() {
-        Target.setSessionId(updatedsessionId)
+        Target.setSessionId(updatedSessionId)
     }
     
     func getThirdPartyId() {

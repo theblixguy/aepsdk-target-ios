@@ -262,8 +262,6 @@ class TargetFunctionalTests: TargetFunctionalTestsBase {
         target = Target(runtime: mockRuntime)
         target.onRegistered()
         XCTAssertEqual("935CDD24-8FD7-4B30-8508-4BE40C3FC263", target.targetState.storedSessionId)
-        let sessionId = target.targetState.sessionId
-        XCTAssertNotEqual("935CDD24-8FD7-4B30-8508-4BE40C3FC263", sessionId)
         XCTAssertEqual("mboxedge35.tt.omtrdc.net", target.targetState.storedEdgeHost)
         let prefetchDataArray: [[String: Any]?] = [
             TargetPrefetch(name: "Drink_1"),
@@ -281,7 +279,7 @@ class TargetFunctionalTests: TargetFunctionalTestsBase {
         mockNetworkService.mock { request in
             XCTAssertNotNil(request)
             let queryMap = self.getQueryMap(url: request.url.absoluteString)
-            XCTAssertEqual(queryMap["sessionId"] ?? "", sessionId)
+            XCTAssertNotEqual(queryMap["sessionId"] ?? "", "935CDD24-8FD7-4B30-8508-4BE40C3FC263")
             XCTAssertFalse(request.url.absoluteString.contains("mboxedge35.tt.omtrdc.net"))
             return nil
         }
