@@ -79,8 +79,9 @@ enum TargetDeliveryRequestBuilder {
     static func getDisplayNotification(mboxName: String, cachedMboxJson: [String: Any]?, targetParameters: TargetParameters?, timestamp: Int64, lifecycleContextData: [String: String]?) -> Notification? {
         let id = UUID().uuidString
 
-        // Set parameters: getMboxParameters
-        let mboxParameters = getMboxParameters(mboxParameters: targetParameters?.parameters, lifecycleContextData: lifecycleContextData)
+        // Set parameters
+        let parameters = targetParameters?.parameters?.filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY }
+        let mboxParameters = merge(newDictionary: lifecycleContextData, to: parameters)
 
         // Set mbox
         let mbox: Mbox
@@ -114,15 +115,16 @@ enum TargetDeliveryRequestBuilder {
     static func getClickedNotification(cachedMboxJson: [String: Any?], targetParameters: TargetParameters?, timestamp: Int64, lifecycleContextData: [String: String]?) -> Notification? {
         let id = UUID().uuidString
 
-        // Set parameters: getMboxParameters
-        let mboxparameters = getMboxParameters(mboxParameters: targetParameters?.parameters, lifecycleContextData: lifecycleContextData)
+        // Set parameters
+        let parameters = targetParameters?.parameters?.filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY }
+        let mboxParameters = merge(newDictionary: lifecycleContextData, to: targetParameters?.parameters)
 
         let mboxName = cachedMboxJson[TargetConstants.TargetJson.Mbox.NAME] as? String ?? ""
 
         let mbox = Mbox(name: mboxName)
 
         guard let metrics = cachedMboxJson[TargetConstants.TargetJson.METRICS] as? [Any?] else {
-            return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mbox, parameters: mboxparameters, profileParameters: targetParameters?.profileParameters, order: targetParameters?.order?.toInternalOrder(), product: targetParameters?.product?.toInternalProduct())
+            return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mbox, parameters: mboxParameters, profileParameters: targetParameters?.profileParameters, order: targetParameters?.order?.toInternalOrder(), product: targetParameters?.product?.toInternalProduct())
         }
 
         // set token
@@ -140,21 +142,7 @@ enum TargetDeliveryRequestBuilder {
             return nil
         }
 
-        return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mbox, tokens: tokens, parameters: mboxparameters, profileParameters: targetParameters?.profileParameters, order: targetParameters?.order?.toInternalOrder(), product: targetParameters?.product?.toInternalProduct())
-    }
-
-    /// Creates the mbox parameters with the provided lifecycle data.
-    /// - Parameters:
-    ///     - mboxParameters: the mbox parameters provided by the user
-    ///     - lifecycleContextData: Lifecycle context  data
-    /// - Returns: a dictionary [String: String]
-    private static func getMboxParameters(mboxParameters: [String: String]?, lifecycleContextData: [String: Any]?) -> [String: String] {
-        var mboxParametersCopy = mboxParameters ?? [:]
-
-        let l = lifecycleContextData as? [String: String]
-        mboxParametersCopy = merge(newDictionary: l, to: mboxParametersCopy) ?? [:]
-
-        return mboxParametersCopy
+        return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mbox, tokens: tokens, parameters: mboxParameters, profileParameters: targetParameters?.profileParameters, order: targetParameters?.order?.toInternalOrder(), product: targetParameters?.product?.toInternalProduct())
     }
 
     /// Creates `TargetIDs` with the given tntId, thirdPartyId and the Identity's shared states
@@ -206,12 +194,13 @@ enum TargetDeliveryRequestBuilder {
         var mboxes = [Mbox]()
 
         for (index, prefetch) in targetPrefetchArray.enumerated() {
-            let parameterWithLifecycleData = merge(newDictionary: lifecycleDataDict, to: prefetch.targetParameters?.parameters)
-            let parameters = merge(newDictionary: globalParameters?.parameters, to: parameterWithLifecycleData)
+            let parameters = merge(newDictionary: globalParameters?.parameters, to: prefetch.targetParameters?.parameters)?
+                .filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY }
+            let parametersWithLifecycleData = merge(newDictionary: lifecycleDataDict, to: parameters)
             let profileParameters = merge(newDictionary: globalParameters?.profileParameters, to: prefetch.targetParameters?.profileParameters)
             let order = getOrder(globalOrder: globalParameters?.order, order: prefetch.targetParameters?.order)
             let product = getProduct(product: prefetch.targetParameters?.product, globalProduct: globalParameters?.product)
-            let mbox = Mbox(name: prefetch.name, index: index, parameters: parameters, profileParameters: profileParameters, order: order, product: product)
+            let mbox = Mbox(name: prefetch.name, index: index, parameters: parametersWithLifecycleData, profileParameters: profileParameters, order: order, product: product)
             mboxes.append(mbox)
         }
         return Mboxes(mboxes: mboxes)
@@ -223,12 +212,13 @@ enum TargetDeliveryRequestBuilder {
         var mboxes = [Mbox]()
 
         for (index, request) in targetRequestArray.enumerated() {
-            let parameterWithLifecycleData = merge(newDictionary: lifecycleDataDict, to: request.targetParameters?.parameters)
-            let parameters = merge(newDictionary: globalParameters?.parameters, to: parameterWithLifecycleData)
+            let parameters = merge(newDictionary: globalParameters?.parameters, to: request.targetParameters?.parameters)?
+                .filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY }
+            let parametersWithLifecycleData = merge(newDictionary: lifecycleDataDict, to: parameters)
             let profileParameters = merge(newDictionary: globalParameters?.profileParameters, to: request.targetParameters?.profileParameters)
             let order = getOrder(globalOrder: globalParameters?.order, order: request.targetParameters?.order)
             let product = getProduct(product: request.targetParameters?.product, globalProduct: globalParameters?.product)
-            let mbox = Mbox(name: request.name, index: index, parameters: parameters, profileParameters: profileParameters, order: order, product: product)
+            let mbox = Mbox(name: request.name, index: index, parameters: parametersWithLifecycleData, profileParameters: profileParameters, order: order, product: product)
             mboxes.append(mbox)
         }
         return Mboxes(mboxes: mboxes)

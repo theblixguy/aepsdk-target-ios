@@ -198,6 +198,7 @@ enum TargetConstants {
         static let ORDER_PARAMETERS = "orderparameters"
         static let PRODUCT_PARAMETERS = "productparameters"
         static let PROFILE_PARAMETERS = "profileparameters"
+        static let AT_PROPERTY = "at_property"
         static let TARGET_CONTENT = "content"
         static let TARGET_DATA_PAYLOAD = "data"
         static let TARGET_RESPONSE_PAIR_ID = "responsePairId"

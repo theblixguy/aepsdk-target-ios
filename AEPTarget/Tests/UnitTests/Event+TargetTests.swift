@@ -72,6 +72,13 @@ class TargetEventTests: XCTestCase {
         XCTAssertEqual("20", parameters.profileParameters?["age"])
         XCTAssertEqual("order_1", parameters.order?.orderId)
     }
+    
+    func testTargetAtProperty() throws {
+        let requestDict = TargetRequest(mboxName: "request_1", defaultContent: mockDefaultContent_1, targetParameters: mockTargetParameter_1, contentCallback: nil).asDictionary()
+        let eventData = ["request": [requestDict], "at_property": "ccc8cdb3-c67a-6126-10b3-65d7f4d32b69"] as [String: Any]
+        let event = Event(name: "request", type: "com.adobe.eventType.target", source: "com.adobe.eventSource.requestContent", data: eventData as [String: Any])
+        XCTAssertEqual("ccc8cdb3-c67a-6126-10b3-65d7f4d32b69", event.propertyToken)
+    }
 
     func testIsLocationDisplayedEvent() throws {
         let eventData = [TargetConstants.EventDataKeys.TARGET_PARAMETERS: nil, TargetConstants.EventDataKeys.IS_LOCATION_DISPLAYED: true] as [String: Any?]

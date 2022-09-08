@@ -643,7 +643,7 @@ public class Target: NSObject, Extension {
         return lifecycleContextData
     }
 
-    private func sendTargetRequest(_: Event,
+    private func sendTargetRequest(_ event: Event,
                                    batchRequests: [TargetRequest]? = nil,
                                    prefetchRequests: [TargetPrefetch]? = nil,
                                    targetParameters: TargetParameters? = nil,
@@ -655,9 +655,11 @@ public class Target: NSObject, Extension {
         let thirdPartyId = targetState.thirdPartyId
         let environmentId = Int64(targetState.environmentId)
         let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleData)
-        let propToken = targetState.propertyToken
 
-        guard let requestJson = TargetDeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetRequestArray: batchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propToken, qaModeParameters: previewManager.previewParameters)?.toJSON() else {
+        // Give preference to property token passed in configuration over event data "at_property".
+        let propertyToken = !targetState.propertyToken.isEmpty ? targetState.propertyToken : event.propertyToken
+
+        guard let requestJson = TargetDeliveryRequestBuilder.build(tntId: tntId, thirdPartyId: thirdPartyId, identitySharedState: identityData, lifecycleSharedState: lifecycleContextData, targetPrefetchArray: prefetchRequests, targetRequestArray: batchRequests, targetParameters: targetParameters, notifications: targetState.notifications.isEmpty ? nil : targetState.notifications, environmentId: environmentId, propertyToken: propertyToken, qaModeParameters: previewManager.previewParameters)?.toJSON() else {
             return "Failed to generate request parameter(JSON) for target delivery API call"
         }
 
