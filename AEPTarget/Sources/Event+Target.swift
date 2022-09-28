@@ -54,6 +54,11 @@ extension Event {
         data?[TargetConstants.EventDataKeys.IS_LOCATION_CLICKED] as? Bool ?? false
     }
 
+    /// Returns true if the event is a raw execute or notification event
+    var isRawEvent: Bool {
+        data?[TargetConstants.EventDataKeys.IS_RAW_EVENT] as? Bool ?? false
+    }
+
     /// Returns true if this event is a reset experience request event
     var isResetExperienceEvent: Bool {
         data?[TargetConstants.EventDataKeys.RESET_EXPERIENCE] as? Bool ?? false
@@ -62,5 +67,13 @@ extension Event {
     /// Returns true if this event is a clear prefetch request event
     var isClearPrefetchCache: Bool {
         data?[TargetConstants.EventDataKeys.CLEAR_PREFETCH_CACHE] as? Bool ?? false
+    }
+
+    /// Returns error message in the response event
+    var error: String? {
+        guard let error = data?[TargetConstants.EventDataKeys.RESPONSE_ERROR] as? String else {
+            return nil
+        }
+        return !error.isEmpty ? error : nil
     }
 }
