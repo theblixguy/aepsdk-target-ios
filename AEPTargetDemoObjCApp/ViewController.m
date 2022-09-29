@@ -24,6 +24,8 @@
 
 @implementation ViewController
 
+NSString *notificationToken;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
@@ -162,4 +164,46 @@
     [AEPMobileTarget setPreviewRestartDeepLink:[NSURL URLWithString:(@"http://www.adobe.com")]];
 }
 
+- (IBAction)executeRawRequest: (id)sender {
+    NSDictionary *request1 = @{
+        @"name": @"aep-loc-1",
+        @"parameters": @{
+            @"mbox_parameter_key": @"mbox_parameter_value"
+        }
+    };
+    
+    NSDictionary *request2 = @{
+        @"name": @"aep-loc-2",
+        @"parameters": @{
+            @"mbox_parameter_key2": @"mbox_parameter_value2"
+        }
+    };
+    
+    [AEPMobileTarget executeRawRequest:@[request1, request2] completion:^(NSArray<NSDictionary<NSString *,id> *> * _Nullable data, NSError * _Nullable err) {
+        if (err != nil) {
+            NSLog(@"Error: %@", err);
+            return;
+        }
+        NSLog(@"Execute raw response >> %@", data);
+        
+        for (int i = 0; i < [data count]; i++) {
+            if ([data[i][@"name"] isEqualToString:@"aep-loc-1" ]) {
+                NSArray *metricsArr = data[i][@"metrics"];
+                notificationToken = [metricsArr count] ? metricsArr[0][@"eventToken"] : @"";
+                return;
+            }
+        }
+    }];
+}
+
+- (IBAction)sendRawNotification: (id)sender {
+    NSDictionary *notficationDict = @{
+        @"name": @"aep-loc-1",
+        @"tokens": @[notificationToken],
+        @"parameters": @{
+            @"mbox_parameter_key3": @"mbox_parameter_value3"
+        }
+    };
+    [AEPMobileTarget sendRawNotification:notficationDict];
+}
 @end

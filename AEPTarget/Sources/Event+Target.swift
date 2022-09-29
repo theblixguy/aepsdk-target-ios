@@ -41,7 +41,12 @@ extension Event {
 
     /// Reads an array`TargetRequest` from the event data
     var targetRequests: [TargetRequest]? {
-        TargetRequest.from(dictionaries: data?[TargetConstants.EventDataKeys.LOAD_REQUESTS] as? [[String: Any]])
+        guard let requests = TargetRequest.from(dictionaries: data?[TargetConstants.EventDataKeys.LOAD_REQUESTS] as? [[String: Any]]),
+              !requests.isEmpty
+        else {
+            return nil
+        }
+        return requests
     }
 
     /// Returns true if the event is location display request event

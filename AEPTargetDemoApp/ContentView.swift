@@ -291,7 +291,7 @@ struct ContentView: View {
                 notificationToken
             ],
             "parameters": [
-                "mbox_parameter_key": "mbox_parameter_value"
+                "mbox_parameter_key3": "mbox_parameter_value3"
             ]
         ]
         Target.sendRawNotification(notification)

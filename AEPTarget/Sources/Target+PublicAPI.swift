@@ -393,12 +393,12 @@ import Foundation
         }
     }
 
-    /// Retrieves Target response for an array of mbox locations.
+    /// Retrieves Target execute response for an array of mbox locations.
     ///
     /// It issues a batch request to the configured Target server for the provided locations in the array. If the location name is not present for one or more items in the execute array, no execute request will be sent to Adobe Target.
     ///
     /// - Parameters:
-    ///   - executeArray: A dictionary containing notification data for a given location name.
+    ///   - executeArray: An array of dictionaries containing location names and Target parameters.
     ///   - completion: the callback which will be invoked with the Target response data or error message after the execute request is completed.
     @objc(executeRawRequest:completion:)
     static func executeRawRequest(_ executeArray: [[String: Any]], _ completion: @escaping ([[String: Any]]?, Error?) -> Void) {

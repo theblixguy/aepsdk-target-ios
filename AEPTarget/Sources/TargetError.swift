@@ -37,6 +37,7 @@ class TargetError: Error, CustomStringConvertible {
     static let ERROR_BATCH_REQUEST_SEND_FAILED = "Unable to send batch requests: "
     static let ERROR_NOTIFICATION_TAG = "Notification"
     static let ERROR_RESPONSE_PARSING_FAILED = "Failed to parse Target server response"
+    static let ERROR_EMPTY_REQUEST_LIST = "Nil or empty execute requests list"
 
     init(message: String) {
         self.message = message

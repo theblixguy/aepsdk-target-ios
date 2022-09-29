@@ -124,7 +124,11 @@ public class Target: NSObject, Extension {
         }
 
         if event.isLoadRequest {
-            loadRequest(event)
+            if event.isRawEvent {
+                rawLoadRequest(event)
+            } else {
+                loadRequest(event)
+            }
             return
         }
 
@@ -288,15 +292,47 @@ public class Target: NSObject, Extension {
                                       targetParameters: targetParameters,
                                       lifecycleData: lifecycleSharedState,
                                       identityData: identitySharedState) { connection in
-            if event.isRawEvent {
-                self.processTargetRawRequestResponse(event: event, connection: connection)
-            } else {
-                self.processTargetRequestResponse(batchRequests: requestsToSend, event: event, connection: connection)
-            }
+            self.processTargetRequestResponse(batchRequests: requestsToSend, event: event, connection: connection)
         }
 
-        if let err = error {
-            Log.warning(label: Target.LOG_TAG, err)
+        if let error = error {
+            Log.warning(label: Target.LOG_TAG, error)
+        }
+    }
+
+    /// Retrieve raw Target execute response for multiple mbox locations.
+    /// .
+    /// - Parameter event: a Target request content event containing Target requests data.
+    private func rawLoadRequest(_ event: Event) {
+        guard let targetRequests = event.targetRequests else {
+            let error = TargetError.ERROR_EMPTY_REQUEST_LIST
+            Log.debug(label: Target.LOG_TAG, "Cannot process the raw execute request: \(error)")
+            dispatchExecuteRawResponse(event: event, error: error, data: nil)
+            return
+        }
+
+        let targetParameters = event.targetParameters
+
+        let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
+        let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
+
+        // Check whether request can be sent
+        if let error = prepareForTargetRequest() {
+            Log.debug(label: Target.LOG_TAG, "Cannot process the raw execute request: \(error)")
+            dispatchExecuteRawResponse(event: event, error: error, data: nil)
+            return
+        }
+
+        let error = sendTargetRequest(event,
+                                      batchRequests: targetRequests,
+                                      targetParameters: targetParameters,
+                                      lifecycleData: lifecycleSharedState,
+                                      identityData: identitySharedState) { connection in
+            self.processTargetRawRequestResponse(event: event, connection: connection)
+        }
+
+        if let error = error {
+            Log.warning(label: Target.LOG_TAG, error)
         }
     }
 
@@ -436,6 +472,12 @@ public class Target: NSObject, Extension {
         }
     }
 
+    /// Sends a click notification to Target if click metrics are enabled for the provided location name.
+    ///
+    /// The click notification is not sent if,
+    /// - Target Extension is not configured.
+    /// - Privacy status is opted-out or opt-unknown.
+    /// - If the location name or click token provided in the Event's data is nil or empty.
     private func rawClickedLocation(_ event: Event) {
         if inPreviewMode {
             Log.warning(label: Target.LOG_TAG, "Raw Target notification cannot be sent while in preview mode.")
@@ -494,7 +536,7 @@ public class Target: NSObject, Extension {
             type: TargetConstants.TargetJson.MetricType.CLICK,
             mbox: mbox,
             tokens: tokens,
-            parameters: Dictionary.merge(targetParameters?.parameters, to: mboxParameters),
+            parameters: Dictionary.merge(targetParameters?.parameters, to: mboxParameters)?.filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY },
             profileParameters: Dictionary.merge(targetParameters?.profileParameters, to: profileParameters),
             order: targetParameters?.order != nil ? targetParameters?.order?.toInternalOrder() : order,
             product: targetParameters?.product != nil ? targetParameters?.product?.toInternalProduct() : product
@@ -618,6 +660,11 @@ public class Target: NSObject, Extension {
         }
     }
 
+    /// Processes the network response after the Target API call.
+    ///
+    /// - Parameters:
+    ///     - event: An event which triggered this network call.
+    ///     - connection: `NetworkService.HttpConnection` instance.
     private func processTargetRawRequestResponse(event: Event, connection: HttpConnection) {
         var error: String? = (connection.responseMessage != TargetConstants.NetworkConnection.CONNECTION_RESPONSE_MESSAGE_NO_ERROR) ? connection.responseMessage : nil
         var responseData: [[String: Any]]?

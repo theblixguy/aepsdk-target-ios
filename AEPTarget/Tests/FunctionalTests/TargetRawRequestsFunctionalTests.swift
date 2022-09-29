@@ -598,7 +598,7 @@ class TargetRawRequestsFunctionalTests: TargetFunctionalTestsBase {
         
         target.onRegistered()
         
-        let targetRequestExpectation = XCTestExpectation(description: "monitor the prefetch request")
+        let targetRequestExpectation = XCTestExpectation(description: "Target raw execute request expectation")
         targetRequestExpectation.isInverted = true
         
         let mockNetworkService = TestableNetworkService()
