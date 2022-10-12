@@ -84,11 +84,11 @@ enum TargetDeliveryRequestBuilder {
         let mboxParameters = Dictionary.merge(lifecycleContextData, to: parameters)
 
         // Set mbox
-        let mbox: Mbox
+        let mbox: NotificationMbox
         if let mboxState = cachedMboxJson?[TargetConstants.TargetJson.Mbox.STATE] as? String, !mboxState.isEmpty {
-            mbox = Mbox(name: mboxName, state: mboxState)
+            mbox = NotificationMbox(name: mboxName, state: mboxState)
         } else {
-            mbox = Mbox(name: mboxName)
+            mbox = NotificationMbox(name: mboxName)
         }
 
         // set token
@@ -121,7 +121,7 @@ enum TargetDeliveryRequestBuilder {
 
         let mboxName = cachedMboxJson[TargetConstants.TargetJson.Mbox.NAME] as? String ?? ""
 
-        let mbox = Mbox(name: mboxName)
+        let mbox = NotificationMbox(name: mboxName)
 
         guard let metrics = cachedMboxJson[TargetConstants.TargetJson.METRICS] as? [Any?] else {
             return Notification(id: id, timestamp: timestamp, type: TargetConstants.TargetJson.MetricType.CLICK, mbox: mbox, parameters: mboxParameters, profileParameters: targetParameters?.profileParameters, order: targetParameters?.order?.toInternalOrder(), product: targetParameters?.product?.toInternalProduct())
@@ -169,7 +169,7 @@ enum TargetDeliveryRequestBuilder {
                          customerIds: customerIds.isEmpty ? nil : customerIds)
     }
 
-    private static func getExperienceCloudInfo(identitySharedState: [String: Any]?) -> ExperienceCloudInfo {
+    static func getExperienceCloudInfo(identitySharedState: [String: Any]?) -> ExperienceCloudInfo {
         let analytics = AnalyticsInfo(logging: .client_side)
         if let identitySharedState = identitySharedState {
             let audienceManager = AudienceManagerInfo(blob: identitySharedState[TargetConstants.Identity.SharedState.Keys.VISITOR_ID_BLOB] as? String, locationHint: identitySharedState[TargetConstants.Identity.SharedState.Keys.VISITOR_ID_LOCATION_HINT] as? String)
@@ -179,7 +179,7 @@ enum TargetDeliveryRequestBuilder {
         return ExperienceCloudInfo(audienceManager: nil, analytics: analytics)
     }
 
-    private static func getTargetContext() -> TargetContext? {
+    static func getTargetContext() -> TargetContext? {
         let deviceType: DeviceType = systemInfoService.getDeviceType() == AEPServices.DeviceType.PHONE ? .phone : .tablet
         let mobilePlatform = MobilePlatform(deviceName: systemInfoService.getDeviceName(), deviceType: deviceType, platformType: .ios)
         let application = AppInfo(id: systemInfoService.getApplicationBundleId(), name: systemInfoService.getApplicationName(), version: systemInfoService.getApplicationBuildNumber())

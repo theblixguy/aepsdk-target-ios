@@ -16,7 +16,7 @@ import Foundation
 extension Event {
     /// Reads an array`TargetPrefetch` from the event data
     var prefetchObjectArray: [TargetPrefetch]? {
-        TargetPrefetch.from(dictionaries: data?[TargetConstants.EventDataKeys.PREFETCH_REQUESTS] as? [[String: Any]])
+        TargetPrefetch.from(dictionaries: data?[TargetConstants.EventDataKeys.PREFETCH] as? [[String: Any]])
     }
 
     /// Reads the `TargetParameters` from the event data
@@ -31,7 +31,7 @@ extension Event {
 
     /// Returns true if this event is a prefetch request event
     var isPrefetchEvent: Bool {
-        data?[TargetConstants.EventDataKeys.PREFETCH_REQUESTS] != nil
+        data?[TargetConstants.EventDataKeys.PREFETCH] != nil
     }
 
     /// Returns true if this event is a load request event
@@ -74,11 +74,30 @@ extension Event {
         data?[TargetConstants.EventDataKeys.CLEAR_PREFETCH_CACHE] as? Bool ?? false
     }
 
+    /// Reads the Target `environmentId` from the event data
+    var environmentId: Int64 {
+        data?[TargetConstants.EventDataKeys.ENVIRONMENT_ID] as? Int64 ?? 0
+    }
+
     /// Returns error message in the response event
     var error: String? {
         guard let error = data?[TargetConstants.EventDataKeys.RESPONSE_ERROR] as? String else {
             return nil
         }
         return !error.isEmpty ? error : nil
+    }
+
+    /// Decode an instance of given type from the event data.
+    /// - Parameter key: Event data key, default value is nil.
+    /// - Returns: Optional type instance
+    func getTypedData<T: Decodable>(for key: String? = nil) -> T? {
+        let key = key ?? ""
+        guard
+            let jsonObject = !key.isEmpty ? data?[key] : data as Any,
+            let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject)
+        else {
+            return nil
+        }
+        return try? JSONDecoder().decode(T.self, from: jsonData)
     }
 }

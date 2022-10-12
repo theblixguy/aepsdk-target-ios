@@ -22,7 +22,7 @@ struct ContentView: View {
     @State var updatedSessionId: String = ""
     @State var tntId: String = ""
     @State var updatedTntId: String = ""
-    @State var notificationToken: String = ""
+    @State var notificationTokens: [(String, String)] = []
     @State var griffonUrl: String = TestConstants.GRIFFON_URL
     @State var fullscreenMessage: FullscreenPresentable?
     
@@ -109,8 +109,8 @@ struct ContentView: View {
                         executeRawRequest()
                     }.padding(10)
 
-                    Button("Send Raw Notification") {
-                        sendRawNotification()
+                    Button("Send Raw Notifications") {
+                        sendRawNotifications()
                     }.padding(10)
 
                 }
@@ -248,53 +248,80 @@ struct ContentView: View {
     }
     
     func executeRawRequest() {
-        let request1: [String: Any] = [
-            "name": "aep-loc-1",
-            "parameters": [
-                "mbox_parameter_key": "mbox_parameter_value"
+        Target.executeRawRequest([
+            "property": [
+                "token": "ccc7cdb3-c67a-6126-10b3-65d7f4d32b69"
+            ],
+            "execute": [
+                "mboxes": [
+                    [
+                        "index": 0,
+                        "name": "aep-loc-1",
+                        "parameters": [
+                            "mbox_parameter_key1": "mbox_parameter_value1"
+                        ]
+                    ],
+                    [
+                        "index": 1,
+                        "name": "aep-loc-2",
+                        "parameters": [
+                            "mbox_parameter_key2": "mbox_parameter_value2"
+                        ]
+                    ]
+                ]
             ]
-        ]
-
-        let request2: [String: Any] = [
-            "name": "aep-loc-2",
-            "parameters": [
-                "mbox_parameter_key2": "mbox_parameter_value2"
-            ]
-        ]
-        
-        let executeArray = [request1, request2]
-        Target.executeRawRequest(executeArray) { responseArr, err in
+        ]) { responseDict, err in
             if let err = err {
                 print("Error: \(err.localizedDescription)")
                 return
             }
-            guard let responseArr = responseArr,
-                  !responseArr.isEmpty else {
+            guard let responseDict = responseDict,
+                  !responseDict.isEmpty else {
                 return
             }
             print("Execute Raw Response:")
-            for response in responseArr {
-                print(PrettyDictionary.prettify(response))
-                if let mboxName = response["name"] as? String,
-                   mboxName == "aep-loc-1" {
-                    let metrics = response["metrics"] as? [[String: Any]]
-                    notificationToken = metrics?[0]["eventToken"] as? String ?? ""
+            print(PrettyDictionary.prettify(responseDict))
+            guard let execute = responseDict["execute"] as? [String: Any], let executeMboxes = execute["mboxes"] as? [[String: Any]] else {
+                return
+            }
+            
+            for mbox in executeMboxes {
+                if let mboxName = mbox["name"] as? String, let metrics = mbox["metrics"] as? [[String: Any]],
+                    !metrics.isEmpty, let token = metrics[0]["eventToken"] as? String {
+                    notificationTokens.append((mboxName, token))
                 }
             }
         }
     }
     
-    func sendRawNotification() {
-        let notification: [String: Any] = [
-            "name": "aep-loc-1",
-            "tokens": [
-                notificationToken
-            ],
-            "parameters": [
-                "mbox_parameter_key3": "mbox_parameter_value3"
+    func sendRawNotifications() {
+        var notifications: [[String: Any]] = []
+        var i: Int = 0
+        for token in notificationTokens {
+            let notification: [String: Any] = [
+                "id": String(i),
+                "timestamp": Int64(Date().timeIntervalSince1970 * 1000.0),
+                "type": "click",
+                "mbox": [
+                    "name": token.0
+                ],
+                "tokens": [
+                    token.1
+                ],
+                "parameters": [
+                    "mbox_parameter_key3": "mbox_parameter_value3"
+                ]
             ]
-        ]
-        Target.sendRawNotification(notification)
+            notifications.append(notification)
+            i += 1
+        }
+        guard !notifications.isEmpty else {
+            return
+        }
+        Target.sendRawNotifications([
+            "notifications": notifications
+        ])
+        notificationTokens.removeAll()
     }
 }
 

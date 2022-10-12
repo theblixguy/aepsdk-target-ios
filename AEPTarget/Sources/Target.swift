@@ -118,17 +118,18 @@ public class Target: NSObject, Extension {
     }
 
     private func handleRequestContent(_ event: Event) {
+        if event.isRawEvent {
+            handleRawRequest(event)
+            return
+        }
+
         if event.isPrefetchEvent {
             prefetchContent(event)
             return
         }
 
         if event.isLoadRequest {
-            if event.isRawEvent {
-                rawLoadRequest(event)
-            } else {
-                loadRequest(event)
-            }
+            loadRequest(event)
             return
         }
 
@@ -138,11 +139,7 @@ public class Target: NSObject, Extension {
         }
 
         if event.isLocationClickedEvent {
-            if event.isRawEvent {
-                rawClickedLocation(event)
-            } else {
-                clickedLocation(event)
-            }
+            clickedLocation(event)
             return
         }
 
@@ -300,42 +297,6 @@ public class Target: NSObject, Extension {
         }
     }
 
-    /// Retrieve raw Target execute response for multiple mbox locations.
-    /// .
-    /// - Parameter event: a Target request content event containing Target requests data.
-    private func rawLoadRequest(_ event: Event) {
-        guard let targetRequests = event.targetRequests else {
-            let error = TargetError.ERROR_EMPTY_REQUEST_LIST
-            Log.debug(label: Target.LOG_TAG, "Cannot process the raw execute request: \(error)")
-            dispatchExecuteRawResponse(event: event, error: error, data: nil)
-            return
-        }
-
-        let targetParameters = event.targetParameters
-
-        let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
-        let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
-
-        // Check whether request can be sent
-        if let error = prepareForTargetRequest() {
-            Log.debug(label: Target.LOG_TAG, "Cannot process the raw execute request: \(error)")
-            dispatchExecuteRawResponse(event: event, error: error, data: nil)
-            return
-        }
-
-        let error = sendTargetRequest(event,
-                                      batchRequests: targetRequests,
-                                      targetParameters: targetParameters,
-                                      lifecycleData: lifecycleSharedState,
-                                      identityData: identitySharedState) { connection in
-            self.processTargetRawRequestResponse(event: event, connection: connection)
-        }
-
-        if let error = error {
-            Log.warning(label: Target.LOG_TAG, error)
-        }
-    }
-
     /// Sends display notifications to Target
     /// Reads the display tokens from the cache either {@link #prefetchedMbox} or {@link #loadedMbox} to send the display notifications.
     /// The display notification is not sent if,
@@ -472,86 +433,6 @@ public class Target: NSObject, Extension {
         }
     }
 
-    /// Sends a click notification to Target if click metrics are enabled for the provided location name.
-    ///
-    /// The click notification is not sent if,
-    /// - Target Extension is not configured.
-    /// - Privacy status is opted-out or opt-unknown.
-    /// - If the location name or click token provided in the Event's data is nil or empty.
-    private func rawClickedLocation(_ event: Event) {
-        if inPreviewMode {
-            Log.warning(label: Target.LOG_TAG, "Raw Target notification cannot be sent while in preview mode.")
-            return
-        }
-
-        guard let notificationData = event.data?[TargetConstants.EventDataKeys.NOTIFICATION] as? [String: Any] else {
-            Log.warning(label: Target.LOG_TAG, "Unable to handle raw Target notification request, notification data is nil.")
-            return
-        }
-
-        // bail out if the target configuration is not available or if the privacy is opted-out
-        if let error = prepareForTargetRequest() {
-            Log.warning(label: Target.LOG_TAG, "Raw Target notification cannot be sent due to error: \(error)")
-            return
-        }
-
-        let targetParameters = event.targetParameters
-        let lifecycleSharedState = getSharedState(extensionName: TargetConstants.Lifecycle.EXTENSION_NAME, event: event)?.value
-        let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
-
-        let lifecycleContextData = getLifecycleDataForTarget(lifecycleData: lifecycleSharedState)
-
-        // set notification id, timestamp and mbox
-        let id = notificationData[TargetConstants.EventDataKeys.NOTIFICATION_ID] as? String ?? UUID().uuidString
-        let timestamp = notificationData[TargetConstants.EventDataKeys.NOTIFICATION_TIMESTAMP] as? Int64 ?? Int64(event.timestamp.timeIntervalSince1970 * 1000.0)
-
-        guard let mboxName = notificationData[TargetConstants.EventDataKeys.MBOX_NAME] as? String,
-              !mboxName.isEmpty
-        else {
-            Log.error(label: Target.LOG_TAG, "Failed to send raw Target notification, the provided mbox name is nil or empty.")
-            return
-        }
-        let mbox = Mbox(name: mboxName)
-
-        // set notification token
-        guard let tokens = notificationData[TargetConstants.EventDataKeys.NOTIFICATION_TOKENS] as? [String],
-              !tokens.isEmpty
-        else {
-            Log.warning(label: Target.LOG_TAG, "Failed to send raw Target notification, the provided tokens array is nil or empty.")
-            return
-        }
-
-        // Set notification parameters
-        let parameters = notificationData[TargetConstants.EventDataKeys.MBOX_PARAMETERS] as? [String: String]
-        let mboxParameters = Dictionary.merge(lifecycleContextData, to: parameters)
-
-        let profileParameters = notificationData[TargetConstants.EventDataKeys.PROFILE_PARAMETERS] as? [String: String]
-
-        let order = TargetOrder.from(dictionary: notificationData[TargetConstants.EventDataKeys.ORDER_PARAMETERS] as? [String: Any])?.toInternalOrder()
-        let product = TargetProduct.from(dictionary: notificationData[TargetConstants.EventDataKeys.PRODUCT_PARAMETERS] as? [String: Any])?.toInternalProduct()
-
-        let notification = Notification(
-            id: id,
-            timestamp: timestamp,
-            type: TargetConstants.TargetJson.MetricType.CLICK,
-            mbox: mbox,
-            tokens: tokens,
-            parameters: Dictionary.merge(targetParameters?.parameters, to: mboxParameters)?.filter { $0.key != TargetConstants.EventDataKeys.AT_PROPERTY },
-            profileParameters: Dictionary.merge(targetParameters?.profileParameters, to: profileParameters),
-            order: targetParameters?.order != nil ? targetParameters?.order?.toInternalOrder() : order,
-            product: targetParameters?.product != nil ? targetParameters?.product?.toInternalProduct() : product
-        )
-        targetState.addNotification(notification)
-
-        let error = sendTargetRequest(event, targetParameters: nil, lifecycleData: lifecycleSharedState, identityData: identitySharedState) { connection in
-            self.processNotificationResponse(event: event, connection: connection)
-        }
-
-        if let error = error {
-            Log.warning(label: Target.LOG_TAG, error)
-        }
-    }
-
     // MARK: - Helpers
 
     /// Process the network response after the notification network call.
@@ -658,71 +539,6 @@ public class Target: NSObject, Extension {
 
             dispatchMboxContent(event: event, content: content ?? targetRequest.defaultContent, data: responsePayload, responsePairId: targetRequest.responsePairId)
         }
-    }
-
-    /// Processes the network response after the Target API call.
-    ///
-    /// - Parameters:
-    ///     - event: An event which triggered this network call.
-    ///     - connection: `NetworkService.HttpConnection` instance.
-    private func processTargetRawRequestResponse(event: Event, connection: HttpConnection) {
-        var error: String? = (connection.responseMessage != TargetConstants.NetworkConnection.CONNECTION_RESPONSE_MESSAGE_NO_ERROR) ? connection.responseMessage : nil
-        var responseData: [[String: Any]]?
-
-        defer {
-            dispatchExecuteRawResponse(event: event, error: error, data: responseData)
-        }
-
-        guard
-            let data = connection.data,
-            let responseDictAnyCodable = try? JSONDecoder().decode([String: AnyCodable].self, from: data),
-            let responseDict = AnyCodable.toAnyDictionary(dictionary: responseDictAnyCodable)
-        else {
-            Log.debug(label: Target.LOG_TAG, "Target response parser initialization failed")
-            error = TargetError.ERROR_RESPONSE_PARSING_FAILED
-            return
-        }
-
-        let response = TargetDeliveryResponse(responseJson: responseDict)
-
-        if let connectionResponseCode = connection.responseCode, connectionResponseCode != 200 {
-            if let responseError = response.errorMessage {
-                if responseError.contains(TargetError.ERROR_NOTIFICATION_TAG) {
-                    targetState.clearNotifications()
-                }
-                error = responseError
-            } else {
-                error = connection.error?.localizedDescription ?? error
-            }
-            Log.debug(label: Target.LOG_TAG, "Target raw execute request failed with response code: \(connectionResponseCode) and error: \(error ?? ""))")
-            return
-        }
-
-        // Clear the notifications when the response is 200 OK
-        targetState.clearNotifications()
-
-        if let tntId = response.tntId { targetState.updateTntId(tntId) }
-        if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
-        createSharedState(data: targetState.generateSharedState(), event: event)
-
-        responseData = response.executeMboxes
-    }
-
-    private func dispatchExecuteRawResponse(event: Event, error: String?, data: [[String: Any]]?) {
-        Log.trace(label: Target.LOG_TAG, "Dispatching raw response for Target execute request.")
-
-        var eventData = [String: Any]()
-        if let data = data {
-            eventData[TargetConstants.EventDataKeys.EXECUTE_MBOXES] = data
-        } else {
-            eventData[TargetConstants.EventDataKeys.RESPONSE_ERROR] = error ?? ""
-        }
-
-        let responseEvent = event.createResponseEvent(name: TargetConstants.EventName.TARGET_RAW_EXECUTE_RESPONSE,
-                                                      type: EventType.target,
-                                                      source: EventSource.responseContent,
-                                                      data: eventData)
-        dispatch(event: responseEvent)
     }
 
     private func dispatchPrefetchErrorEvent(triggerEvent: Event, errorMessage: String) {
@@ -1010,6 +826,162 @@ public class Target: NSObject, Extension {
         for request in batchRequests {
             dispatchMboxContent(event: event, content: request.defaultContent, data: nil, responsePairId: request.responsePairId)
         }
+    }
+
+    /// Executes a raw Target prefetch or execute request for the provided request event data.
+    /// .
+    /// - Parameter event: a Target request content event containing request data.
+    private func handleRawRequest(_ event: Event) {
+        let execute: Mboxes? = event.getTypedData(for: TargetConstants.EventDataKeys.EXECUTE)
+        let prefetch: Mboxes? = event.getTypedData(for: TargetConstants.EventDataKeys.PREFETCH)
+        let notifications: [Notification]? = event.getTypedData(for: TargetConstants.EventDataKeys.NOTIFICATIONS)
+        let isContentRequest: Bool = prefetch != nil || execute != nil
+        var error: String?
+
+        defer {
+            if error != nil, isContentRequest {
+                dispatchTargetRawResponse(event: event, error: error, data: nil)
+            }
+        }
+
+        var environmentId = Int64(targetState.environmentId)
+        if environmentId == 0 {
+            environmentId = event.environmentId
+        }
+
+        let identitySharedState = getSharedState(extensionName: TargetConstants.Identity.EXTENSION_NAME, event: event)?.value
+
+        var id: TargetIDs? = event.getTypedData(for: TargetConstants.EventDataKeys.ID)
+        if id == nil {
+            id = TargetDeliveryRequestBuilder.getTargetIDs(tntid: targetState.tntId, thirdPartyId: targetState.thirdPartyId, identitySharedState: identitySharedState)
+        }
+
+        var experienceCloud: ExperienceCloudInfo? = event.getTypedData(for: TargetConstants.EventDataKeys.EXPERIENCE_CLOUD)
+        if experienceCloud == nil {
+            experienceCloud = TargetDeliveryRequestBuilder.getExperienceCloudInfo(identitySharedState: identitySharedState)
+        }
+
+        var context: TargetContext? = event.getTypedData(for: TargetConstants.EventDataKeys.CONTEXT)
+        if context == nil {
+            context = TargetDeliveryRequestBuilder.getTargetContext()
+        }
+
+        // Give preference to property token passed in configuration over event data.
+        var property: Property?
+        if !targetState.propertyToken.isEmpty {
+            property = Property(token: targetState.propertyToken)
+        } else {
+            property = event.getTypedData(for: TargetConstants.EventDataKeys.PROPERTY)
+        }
+
+        var qaMode: [String: AnyCodable]?
+        if let qaModeParameters = previewManager.previewParameters, !qaModeParameters.isEmpty, let qaModeData = qaModeParameters.data(using: .utf8) {
+            let qaModeDict = try? JSONSerialization.jsonObject(with: qaModeData, options: []) as? [String: Any]
+            qaMode = AnyCodable.from(dictionary: qaModeDict?[TargetConstants.TargetJson.QA_MODE] as? [String: Any])
+        }
+
+        guard let requestJson = TargetDeliveryRequest(id: id!, context: context!, experienceCloud: experienceCloud!, prefetch: prefetch, execute: execute, notifications: notifications, environmentId: environmentId, property: property, qaMode: qaMode).toJSON() else {
+            error = TargetError.ERROR_INVALID_REQUEST
+            Log.debug(label: Target.LOG_TAG, "handleRawRequest - Cannot process raw Target request, failed to generate request JSON for delivery API call.")
+            return
+        }
+
+        // Check whether request can be sent
+        if let requestError = prepareForTargetRequest() {
+            error = requestError
+            Log.debug(label: Target.LOG_TAG, "handleRawRequest - Cannot process the raw Target request: \(requestError)")
+            return
+        }
+
+        guard let clientCode = targetState.clientCode else {
+            error = TargetError.ERROR_NO_CLIENT_CODE
+            Log.debug(label: Target.LOG_TAG, "handleRawRequest - Cannot process raw Target request, client code configuration is missing.")
+            return
+        }
+
+        guard let url = URL(string: getTargetDeliveryURL(targetServer: targetState.targetServer, clientCode: clientCode)) else {
+            Log.debug(label: Target.LOG_TAG, "handleRawRequest - Cannot process raw Target request, failed to generate the URL for Target delivery API call.")
+            return
+        }
+
+        let timeout = targetState.networkTimeout
+        let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
+
+        // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
+        let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: timeout, readTimeout: timeout)
+
+        stopEvents()
+        Log.debug(label: Target.LOG_TAG, "handleRawRequest - Sending Target request with url: \(url.absoluteString) and body: \(requestJson).")
+
+        networkService.connectAsync(networkRequest: request) { connection in
+            Log.debug(label: Target.LOG_TAG, "handleRawRequest - Target response is received with code: \(connection.responseCode ?? -1) and data: \(connection.responseString ?? "").")
+            self.targetState.updateSessionTimestamp()
+            self.processTargetRawResponse(event: event, isContentRequest: isContentRequest, connection: connection)
+        }
+        startEvents()
+    }
+
+    /// Processes the network response after the Target delivery API call for raw request.
+    ///
+    /// - Parameters:
+    ///     - event: The Target request event which triggered this network call.
+    ///     - connection: `NetworkService.HttpConnection` instance.
+    private func processTargetRawResponse(event: Event, isContentRequest: Bool, connection: HttpConnection) {
+        var error: String? = connection.error?.localizedDescription
+        var responseData: [String: Any]?
+
+        defer {
+            if isContentRequest {
+                dispatchTargetRawResponse(event: event, error: error, data: responseData)
+            }
+        }
+
+        guard
+            let data = connection.data,
+            let responseDictAnyCodable = try? JSONDecoder().decode([String: AnyCodable].self, from: data),
+            let responseDict = AnyCodable.toAnyDictionary(dictionary: responseDictAnyCodable)
+        else {
+            error = TargetError.ERROR_RESPONSE_PARSING_FAILED
+            Log.debug(label: Target.LOG_TAG, "processTargetRawResponse - Target response parser initialization failed.")
+            return
+        }
+
+        let response = TargetDeliveryResponse(responseJson: responseDict)
+
+        if let connectionResponseCode = connection.responseCode, connectionResponseCode != 200 {
+            error = response.errorMessage ?? connection.responseMessage ?? error
+            Log.debug(label: Target.LOG_TAG, "processTargetRawResponse - Target raw execute request failed with response code: \(connectionResponseCode) and error: \(error ?? ""))")
+            return
+        }
+
+        if let tntId = response.tntId { targetState.updateTntId(tntId) }
+        if let edgeHost = response.edgeHost { targetState.updateEdgeHost(edgeHost) }
+        createSharedState(data: targetState.generateSharedState(), event: event)
+
+        responseData = response.responseJson
+    }
+
+    /// Dispatches the Target response content event for raw request.
+    ///
+    /// - Parameters:
+    ///     - event: the Target raw request event.
+    ///     - error: (optional) string indicating error when requesting content from Target.
+    ///     - data: (optional) dictionary containing the response payload from Target for the raw execute or prefetch request.
+    private func dispatchTargetRawResponse(event: Event, error: String?, data: [String: Any]?) {
+        Log.trace(label: Target.LOG_TAG, "dispatchTargetRawResponse - Dispatching response event for Target raw request.")
+
+        var eventData: [String: Any] = [:]
+        if let data = data {
+            eventData[TargetConstants.EventDataKeys.RESPONSE_DATA] = data
+        } else {
+            eventData[TargetConstants.EventDataKeys.RESPONSE_ERROR] = error ?? ""
+        }
+
+        let responseEvent = event.createResponseEvent(name: TargetConstants.EventName.TARGET_RAW_RESPONSE,
+                                                      type: EventType.target,
+                                                      source: EventSource.responseContent,
+                                                      data: eventData)
+        dispatch(event: responseEvent)
     }
 
     /// Dispatches the Target Response Content Event.

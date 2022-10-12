@@ -304,16 +304,16 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fjF-lY-MI0">
-                                <rect key="frame" x="219" y="774" width="175" height="30"/>
+                                <rect key="frame" x="211.5" y="774" width="182.5" height="30"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="GgY-WG-Xo2"/>
                                 </constraints>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Send Raw Notification">
+                                <buttonConfiguration key="configuration" style="plain" title="Send Raw Notifications">
                                     <fontDescription key="titleFontDescription" type="system" pointSize="15"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="sendRawNotification:" destination="BYZ-38-t0r" eventType="touchUpInside" id="gou-NC-SiP"/>
+                                    <action selector="sendRawNotifications:" destination="BYZ-38-t0r" eventType="touchUpInside" id="aQT-3K-vC5"/>
                                 </connections>
                             </button>
                         </subviews>
