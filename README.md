@@ -1,11 +1,9 @@
 # AEPTarget
 
-<!--
-on [![Cocoapods](https://img.shields.io/cocoapods/v/AEPCore.svg?color=orange&label=AEPCore&logo=apple&logoColor=white)](https://cocoapods.org/pods/AEPTarget)
--->
-[![SPM](https://img.shields.io/badge/SPM-Supported-orange.svg?logo=apple&logoColor=white)](https://swift.org/package-manager/)
-![Target-CI](https://github.com/adobe/aepsdk-target-ios/workflows/Target-CI/badge.svg)
-[![Code Coverage](https://img.shields.io/codecov/c/github/adobe/aepsdk-target-ios/dev.svg?logo=codecov)](https://codecov.io/gh/adobe/aepsdk-target-ios/branch/dev)
+[![Cocoapods](https://img.shields.io/github/v/release/adobe/aepsdk-target-ios?label=CocoaPods&logo=apple&logoColor=white&color=orange&sort=semver)](https://cocoapods.org/pods/AEPTarget)
+[![SPM](https://img.shields.io/github/v/release/adobe/aepsdk-target-ios?label=SPM&logo=apple&logoColor=white&color=orange&sort=semver)](https://github.com/adobe/aepsdk-target-ios/releases)
+[![CircleCI](https://img.shields.io/circleci/project/github/adobe/aepsdk-target-ios/main.svg?logo=circleci&label=Build)](https://circleci.com/gh/adobe/workflows/aepsdk-target-ios)
+[![Code Coverage](https://img.shields.io/codecov/c/github/adobe/aepsdk-target-ios/main.svg?logo=codecov&label=Coverage)](https://codecov.io/gh/adobe/aepsdk-target-ios/branch/main)
 
 ## About this project
 
