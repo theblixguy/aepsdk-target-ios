@@ -1057,8 +1057,8 @@ public class Target: NSObject, Extension {
 
             if TargetConstants.TargetJson.HTML == type, let contentString = content as? String {
                 contentBuilder.append(contentString)
-            } else if TargetConstants.TargetJson.JSON == type, let contentDict = content as? [String: Any?] {
-                guard let jsonData = try? JSONSerialization.data(withJSONObject: contentDict, options: .prettyPrinted) else {
+            } else if TargetConstants.TargetJson.JSON == type, let anyContent = content {
+                guard let jsonData = try? JSONSerialization.data(withJSONObject: anyContent, options: .prettyPrinted) else {
                     continue
                 }
                 guard let jsonString = String(data: jsonData, encoding: .utf8) else { continue }
