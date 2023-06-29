@@ -631,7 +631,12 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        setValidConfiguration()
+        MobileCore.updateConfigurationWith(configDict: [
+            "experienceCloud.org": "orgid",
+            "experienceCloud.server": "test.com",
+            "global.privacy": "optedin",
+            "target.clientCode": "acopprod3",
+        ])
 
         let prefetchExpectation = XCTestExpectation(description: "prefetchContent should prefetch content without error.")
         let mockNetworkService = TestableNetworkService()
