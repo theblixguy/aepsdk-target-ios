@@ -139,13 +139,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update configurationverify the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
         guard let config = waitForLatestSettledSharedState("com.adobe.module.configuration", timeout: 2) else {
             XCTFail("failed to retrieve the latest configuration (.set)")
             return
@@ -406,13 +400,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let targetRequestExpectation = XCTestExpectation(description: "monitor the target request")
         let mockNetworkService = TestableNetworkService()
@@ -435,6 +423,65 @@ class TargetIntegrationTests: XCTestCase {
             targetRequestExpectation.fulfill()
         }
         Target.retrieveLocationContent([retrieveRequest1, retrieveRequest2])
+        wait(for: [targetRequestExpectation], timeout: 1)
+    }
+    
+    
+    func testRetrieveLocationContent_ArrayContent() {
+        let responseString = """
+            {
+              "status": 200,
+              "id": {
+                "tntId": "DE03D4AD-1FFE-421F-B2F2-303BF26822C1.35_0",
+                "marketingCloudVisitorId": "61055260263379929267175387965071996926"
+              },
+              "requestId": "01d4a408-6978-48f7-95c6-03f04160b257",
+              "client": "acopprod3",
+              "edgeHost": "mboxedge35.tt.omtrdc.net",
+              "execute": {
+                "mboxes": [
+                  {
+                    "index": 0,
+                    "name": "t_test_01",
+                    "options": [
+                      {
+                        "content": ["one","two","three"],
+                        "type": "json"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+        """
+        let validResponse = HTTPURLResponse(url: URL(string: "https://amsdk.tt.omtrdc.net/rest/v1/delivery")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+
+        // init mobile SDK, register extensions
+        let initExpectation = XCTestExpectation(description: "init extensions")
+        MobileCore.setLogLevel(.trace)
+        MobileCore.registerExtensions([Target.self, Identity.self, Lifecycle.self]) {
+            initExpectation.fulfill()
+        }
+        wait(for: [initExpectation], timeout: 1)
+
+        // update the configuration's shared state
+        setValidConfiguration()
+
+        let targetRequestExpectation = XCTestExpectation(description: "monitor the target request")
+        let mockNetworkService = TestableNetworkService()
+        ServiceProvider.shared.networkService = mockNetworkService
+        mockNetworkService.mock { request in
+            if request.url.absoluteString.contains("https://amsdk.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
+            }
+            return nil
+        }
+        let retrieveRequest1 = TargetRequest(mboxName: "t_test_01",
+                                             defaultContent: "default_content1") { content in
+            XCTAssertEqual("[\n  \"one\",\n  \"two\",\n  \"three\"\n]", content)
+            targetRequestExpectation.fulfill()
+        }
+        Target.retrieveLocationContent([retrieveRequest1])
         wait(for: [targetRequestExpectation], timeout: 1)
     }
 
@@ -474,13 +521,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let targetRequestExpectation = XCTestExpectation(description: "Should return default content when no content is returned from Target.")
         targetRequestExpectation.expectedFulfillmentCount = 2
@@ -517,13 +558,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let targetRequestExpectation = XCTestExpectation(description: "retrieveLocationContent should return default content when response indicates server error.")
         let mockNetworkService = TestableNetworkService()
@@ -694,13 +729,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let targetRequestExpectation = XCTestExpectation(description: "retrieveLocationContent should return A4T payload and response tokens.")
         let mockNetworkService = TestableNetworkService()
@@ -783,13 +812,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let prefetchExpectation = XCTestExpectation(description: "Should return A4T payload and response tokens")
         let mockNetworkService = TestableNetworkService()
@@ -846,13 +869,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let getErrorExpectation = XCTestExpectation(description: "init extensions")
         Target.getThirdPartyId { id, error in
@@ -886,13 +903,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "acopprod3.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let getSessionIdExpectation = XCTestExpectation(description: "get session Id")
         Target.getSessionId { id, error in
@@ -929,13 +940,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "acopprod3.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         let getErrorExpectation = XCTestExpectation(description: "error expectation")
         Target.getTntId { id, error in
@@ -970,13 +975,7 @@ class TargetIntegrationTests: XCTestCase {
         wait(for: [initExpectation], timeout: 1)
 
         // update the configuration's shared state
-        MobileCore.updateConfigurationWith(configDict: [
-            "experienceCloud.org": "orgid",
-            "experienceCloud.server": "test.com",
-            "global.privacy": "optedin",
-            "target.server": "amsdk.tt.omtrdc.net",
-            "target.clientCode": "acopprod3",
-        ])
+        setValidConfiguration()
 
         Target.setThirdPartyId("third_party_id")
         let getThirdPartyIdExpectation = XCTestExpectation(description: "init extensions")
@@ -2157,5 +2156,15 @@ class TargetIntegrationTests: XCTestCase {
         ]
         Target.sendRawNotifications(notificationRequestData)
         wait(for: [targetNotificationExpectation], timeout: 2)
+    }
+    
+    private func setValidConfiguration() {
+        MobileCore.updateConfigurationWith(configDict: [
+            "experienceCloud.org": "orgid",
+            "experienceCloud.server": "test.com",
+            "global.privacy": "optedin",
+            "target.server": "amsdk.tt.omtrdc.net",
+            "target.clientCode": "acopprod3",
+        ])
     }
 }
