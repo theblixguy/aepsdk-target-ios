@@ -15,11 +15,31 @@ import Foundation
 
 /// Represents the state of the `Target` extension
 class TargetState {
-    private(set) var prefetchedMboxJsonDicts = [String: [String: Any]]()
-    private(set) var loadedMboxJsonDicts = [String: [String: Any]]()
-    private(set) var notifications = [Notification]()
+    private let queue: DispatchQueue = .init(label: "com.adobe.targetstate.queue")
 
-    private(set) var storedConfigurationSharedState: [String: Any]?
+    private var _prefetchedMboxJsonDicts: [String: [String: Any]] = [:]
+    private(set) var prefetchedMboxJsonDicts: [String: [String: Any]] {
+        get { queue.sync { self._prefetchedMboxJsonDicts } }
+        set { queue.async { self._prefetchedMboxJsonDicts = newValue } }
+    }
+
+    private var _loadedMboxJsonDicts: [String: [String: Any]] = [:]
+    private(set) var loadedMboxJsonDicts: [String: [String: Any]] {
+        get { queue.sync { self._loadedMboxJsonDicts } }
+        set { queue.async { self._loadedMboxJsonDicts = newValue } }
+    }
+
+    private var _notifications: [Notification] = []
+    private(set) var notifications: [Notification] {
+        get { queue.sync { self._notifications } }
+        set { queue.async { self._notifications = newValue } }
+    }
+
+    private var _storedConfigurationSharedState: [String: Any]?
+    private(set) var storedConfigurationSharedState: [String: Any]? {
+        get { queue.sync { self._storedConfigurationSharedState } }
+        set { queue.async { self._storedConfigurationSharedState = newValue } }
+    }
 
     private(set) var thirdPartyId: String?
     private(set) var tntId: String?
