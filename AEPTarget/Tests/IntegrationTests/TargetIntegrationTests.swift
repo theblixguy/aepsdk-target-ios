@@ -185,6 +185,12 @@ class TargetIntegrationTests: XCTestCase {
         mockNetworkService.mock { request in
             Log.debug(label: self.T_LOG_TAG, "request url is: \(request.url.absoluteString)")
             if request.url.absoluteString.contains("https://amsdk.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+                
                 if let payloadDictionary = try? JSONSerialization.jsonObject(with: request.connectPayload, options: .allowFragments) as? [String: Any]
                 {
                     Log.debug(label: self.T_LOG_TAG, "request payload is: \n \(self.prettify(payloadDictionary))")
@@ -407,6 +413,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://amsdk.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
             }
             return nil
@@ -1093,6 +1105,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://amsdk.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 let connectPayloadString = String(decoding: request.connectPayload, as: UTF8.self)
                 if connectPayloadString.contains("ADCKKBC") {
                     targetRequestExpectation.fulfill()
@@ -1219,6 +1237,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://amsdk.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 let connectPayloadString = String(decoding: request.connectPayload, as: UTF8.self)
                 if connectPayloadString.contains("ADCKKBC") {
                     targetRequestExpectation.fulfill()
@@ -1662,6 +1686,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://acopprod3.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
             }
             return nil
@@ -1802,6 +1832,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://acopprod3.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
             }
             return nil
@@ -1954,6 +1990,12 @@ class TargetIntegrationTests: XCTestCase {
         ServiceProvider.shared.networkService = mockNetworkService
         mockNetworkService.mock { request in
             if request.url.absoluteString.contains("https://acopprod3.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
             }
 
@@ -2096,6 +2138,12 @@ class TargetIntegrationTests: XCTestCase {
             }
 
             if request.url.absoluteString.contains("https://mboxedge35.tt.omtrdc.net/rest/v1/delivery/?client=acopprod3&sessionId=") {
+                // verify request headers
+                let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
+                let requestHeaders: [String: String] = request.httpHeaders
+                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
+
                 targetNotificationExpectation.fulfill()
                 return nil
             }

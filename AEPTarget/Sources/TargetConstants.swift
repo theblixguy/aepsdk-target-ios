@@ -15,14 +15,17 @@ import Foundation
 enum TargetConstants {
     static let EXTENSION_NAME = "com.adobe.module.target"
     static let FRIENDLY_NAME = "Target"
-    static let EXTENSION_VERSION = "4.0.1"
+    static let EXTENSION_VERSION = "4.0.2"
     static let DATASTORE_NAME = EXTENSION_NAME
     static let DEFAULT_SESSION_TIMEOUT: Int = 30 * 60 // 30 mins
     static let DELIVERY_API_URL_BASE = "https://%@/rest/v1/delivery/?client=%@&sessionId=%@"
     static let EDGE_HOST_BASE = "mboxedge%@"
     static let API_URL_HOST_BASE = "%@.tt.omtrdc.net"
     static let HEADER_CONTENT_TYPE = "Content-Type"
+    static let HEADER_X_EXC_SDK = "X-EXC-SDK"
+    static let HEADER_X_EXC_SDK_VERSION = "X-EXC-SDK-Version"
     static let HEADER_CONTENT_TYPE_JSON = "application/json"
+    static let HEADER_X_EXC_SDK_TARGET_MOBILE = "AdobeTargetMobile"
     static let A4T_ACTION_NAME = "AnalyticsForTarget"
 
     static let MAP_TO_CONTEXT_DATA_KEYS: [String: String] = [
@@ -231,6 +234,15 @@ enum TargetConstants {
             static let TRACK_INTERNAL = "trackinternal"
             static let TRACK_ACTION = "action"
             static let CONTEXT_DATA = "contextdata"
+        }
+    }
+
+    enum EventHub {
+        static let EXTENSION_NAME = "com.adobe.module.eventhub"
+        enum SharedState {
+            enum Keys {
+                static let VERSION = "version"
+            }
         }
     }
 

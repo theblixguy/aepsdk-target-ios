@@ -569,6 +569,17 @@ public class Target: NSObject, Extension {
         return String(format: TargetConstants.DELIVERY_API_URL_BASE, String(format: TargetConstants.API_URL_HOST_BASE, clientCode), clientCode, targetState.sessionId)
     }
 
+    private func getSdkVersion(eventHubData: [String: Any]?) -> String {
+        guard let eventHubData = eventHubData else {
+            return ""
+        }
+
+        let coreVersion = eventHubData[TargetConstants.EventHub.SharedState.Keys.VERSION] as? String ?? "unknown"
+
+        // sdkVersion is a combination of Mobile Core+Target SDK version
+        return "\(coreVersion)+\(TargetConstants.EXTENSION_VERSION)"
+    }
+
     /// Prepares for the target requests and checks whether a target request can be sent.
     /// - returns: error indicating why the request can't be sent, nil otherwise
     private func prepareForTargetRequest() -> String? {
@@ -667,8 +678,6 @@ public class Target: NSObject, Extension {
             return "Failed to generate request parameter(JSON) for target delivery API call"
         }
 
-        let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
-
         guard let clientCode = targetState.clientCode else {
             return "Missing client code"
         }
@@ -678,6 +687,11 @@ public class Target: NSObject, Extension {
         }
 
         let timeout = targetState.networkTimeout
+        let headers = [
+            TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON,
+            TargetConstants.HEADER_X_EXC_SDK: TargetConstants.HEADER_X_EXC_SDK_TARGET_MOBILE,
+            TargetConstants.HEADER_X_EXC_SDK_VERSION: getSdkVersion(eventHubData: getSharedState(extensionName: TargetConstants.EventHub.EXTENSION_NAME, event: event)?.value),
+        ]
 
         // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: timeout, readTimeout: timeout)
@@ -904,7 +918,11 @@ public class Target: NSObject, Extension {
         }
 
         let timeout = targetState.networkTimeout
-        let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
+        let headers = [
+            TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON,
+            TargetConstants.HEADER_X_EXC_SDK: TargetConstants.HEADER_X_EXC_SDK_TARGET_MOBILE,
+            TargetConstants.HEADER_X_EXC_SDK_VERSION: getSdkVersion(eventHubData: getSharedState(extensionName: TargetConstants.EventHub.EXTENSION_NAME, event: event)?.value),
+        ]
 
         // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: timeout, readTimeout: timeout)
