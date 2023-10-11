@@ -934,8 +934,9 @@ public class Target: NSObject, Extension {
             Log.debug(label: Target.LOG_TAG, "handleRawRequest - Target response is received with code: \(connection.responseCode ?? -1) and data: \(connection.responseString ?? "").")
             self.targetState.updateSessionTimestamp()
             self.processTargetRawResponse(event: event, isContentRequest: isContentRequest, connection: connection)
+
+            self.startEvents()
         }
-        startEvents()
     }
 
     /// Processes the network response after the Target delivery API call for raw request.
