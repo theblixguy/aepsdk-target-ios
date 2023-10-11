@@ -569,6 +569,35 @@ public class Target: NSObject, Extension {
         return String(format: TargetConstants.DELIVERY_API_URL_BASE, String(format: TargetConstants.API_URL_HOST_BASE, clientCode), clientCode, targetState.sessionId)
     }
 
+    private func getSdkVersion(eventHubData: [String: Any]?) -> String {
+        guard let eventHubData = eventHubData else {
+            return ""
+        }
+
+        let coreVersion = eventHubData[TargetConstants.EventHub.SharedState.Keys.VERSION] as? String ?? "unknown"
+
+        // sdkVersion is a combination of Mobile Core+Target SDK version
+        return "\(coreVersion)+\(TargetConstants.EXTENSION_VERSION)"
+    }
+
+    private func getSdkInfo(eventHubData: [String: Any]?) -> String {
+        let sdkBase = TargetConstants.HEADER_X_EXC_SDK_BASE_TARGET_MOBILE_IOS
+
+        guard let eventHubData = eventHubData else {
+            return sdkBase
+        }
+
+        guard let wrapper = eventHubData[TargetConstants.EventHub.SharedState.Keys.WRAPPER] as? [String: Any],
+              let wrapperFriendlyName = wrapper[TargetConstants.EventHub.SharedState.Keys.WRAPPER_FRIENDLY_NAME] as? String,
+              wrapperFriendlyName != "None"
+        else {
+            return sdkBase
+        }
+
+        // sdkInfo is of the format AdobeTargetMobile-iOS-<wrapperFriendlyName>
+        return "\(sdkBase)-\(wrapperFriendlyName)"
+    }
+
     /// Prepares for the target requests and checks whether a target request can be sent.
     /// - returns: error indicating why the request can't be sent, nil otherwise
     private func prepareForTargetRequest() -> String? {
@@ -667,8 +696,6 @@ public class Target: NSObject, Extension {
             return "Failed to generate request parameter(JSON) for target delivery API call"
         }
 
-        let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
-
         guard let clientCode = targetState.clientCode else {
             return "Missing client code"
         }
@@ -677,7 +704,13 @@ public class Target: NSObject, Extension {
             return "Failed to generate the url for target API call"
         }
 
+        let eventHubSharedState = getSharedState(extensionName: TargetConstants.EventHub.EXTENSION_NAME, event: event)?.value
         let timeout = targetState.networkTimeout
+        let headers = [
+            TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON,
+            TargetConstants.HEADER_X_EXC_SDK: getSdkInfo(eventHubData: eventHubSharedState),
+            TargetConstants.HEADER_X_EXC_SDK_VERSION: getSdkVersion(eventHubData: eventHubSharedState),
+        ]
 
         // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: timeout, readTimeout: timeout)
@@ -903,8 +936,13 @@ public class Target: NSObject, Extension {
             return
         }
 
+        let eventHubSharedState = getSharedState(extensionName: TargetConstants.EventHub.EXTENSION_NAME, event: event)?.value
         let timeout = targetState.networkTimeout
-        let headers = [TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON]
+        let headers = [
+            TargetConstants.HEADER_CONTENT_TYPE: TargetConstants.HEADER_CONTENT_TYPE_JSON,
+            TargetConstants.HEADER_X_EXC_SDK: getSdkInfo(eventHubData: eventHubSharedState),
+            TargetConstants.HEADER_X_EXC_SDK_VERSION: getSdkVersion(eventHubData: eventHubSharedState),
+        ]
 
         // https://developers.adobetarget.com/api/delivery-api/#tag/Delivery-API
         let request = NetworkRequest(url: url, httpMethod: .post, connectPayload: requestJson, httpHeaders: headers, connectTimeout: timeout, readTimeout: timeout)
@@ -916,8 +954,9 @@ public class Target: NSObject, Extension {
             Log.debug(label: Target.LOG_TAG, "handleRawRequest - Target response is received with code: \(connection.responseCode ?? -1) and data: \(connection.responseString ?? "").")
             self.targetState.updateSessionTimestamp()
             self.processTargetRawResponse(event: event, isContentRequest: isContentRequest, connection: connection)
+
+            self.startEvents()
         }
-        startEvents()
     }
 
     /// Processes the network response after the Target delivery API call for raw request.
