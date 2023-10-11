@@ -25,7 +25,7 @@ enum TargetConstants {
     static let HEADER_X_EXC_SDK = "X-EXC-SDK"
     static let HEADER_X_EXC_SDK_VERSION = "X-EXC-SDK-Version"
     static let HEADER_CONTENT_TYPE_JSON = "application/json"
-    static let HEADER_X_EXC_SDK_TARGET_MOBILE = "AdobeTargetMobile"
+    static let HEADER_X_EXC_SDK_BASE_TARGET_MOBILE_IOS = "AdobeTargetMobile-iOS"
     static let A4T_ACTION_NAME = "AnalyticsForTarget"
 
     static let MAP_TO_CONTEXT_DATA_KEYS: [String: String] = [
@@ -242,6 +242,8 @@ enum TargetConstants {
         enum SharedState {
             enum Keys {
                 static let VERSION = "version"
+                static let WRAPPER = "wrapper"
+                static let WRAPPER_FRIENDLY_NAME = "friendlyName"
             }
         }
     }

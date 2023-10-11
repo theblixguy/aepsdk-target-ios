@@ -188,7 +188,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
                 
                 if let payloadDictionary = try? JSONSerialization.jsonObject(with: request.connectPayload, options: .allowFragments) as? [String: Any]
@@ -416,7 +416,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
@@ -1108,7 +1108,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 let connectPayloadString = String(decoding: request.connectPayload, as: UTF8.self)
@@ -1240,7 +1240,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 let connectPayloadString = String(decoding: request.connectPayload, as: UTF8.self)
@@ -1689,7 +1689,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
@@ -1835,7 +1835,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
@@ -1993,7 +1993,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 return (data: responseString.data(using: .utf8), response: validResponse, error: nil)
@@ -2141,7 +2141,7 @@ class TargetIntegrationTests: XCTestCase {
                 // verify request headers
                 let coreVersion = self.getLastValidSharedState("com.adobe.module.eventhub")?.value?["version"] ?? "unknown"
                 let requestHeaders: [String: String] = request.httpHeaders
-                XCTAssertEqual("AdobeTargetMobile", requestHeaders["X-EXC-SDK"])
+                XCTAssertEqual("AdobeTargetMobile-iOS", requestHeaders["X-EXC-SDK"])
                 XCTAssertEqual("\(coreVersion)+\(TargetTestConstants.EXTENSION_VERSION)", requestHeaders["X-EXC-SDK-Version"])
 
                 targetNotificationExpectation.fulfill()
