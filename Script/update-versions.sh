@@ -94,6 +94,11 @@ CONSTANTS_FILE=$ROOT_DIR"/AEP$NAME/Sources/"$NAME"Constants.swift"
 echo "Changing value of 'EXTENSION_VERSION' to '$NEW_VERSION' in '$CONSTANTS_FILE'"
 sed -i '' -E "/^ +static let EXTENSION_VERSION/{s/$VERSION_REGEX/$NEW_VERSION/;}" $CONSTANTS_FILE
 
+# Replace version in TestConstants file
+TEST_CONSTANTS_FILE=$ROOT_DIR"/AEP$NAME/Tests/TestHelpers/"$NAME"TestConstants.swift"
+echo "Changing value of 'EXTENSION_VERSION' to '$NEW_VERSION' in '$TEST_CONSTANTS_FILE'"
+sed -i '' -E "/^ +static let EXTENSION_VERSION/{s/$VERSION_REGEX/$NEW_VERSION/;}" $TEST_CONSTANTS_FILE
+
 # Replace marketing versions in project.pbxproj
 PROJECT_PBX_FILE=$ROOT_DIR"/AEP$NAME.xcodeproj/project.pbxproj"
 echo "Changing value of 'MARKETING_VERSION' to '$NEW_VERSION' in '$PROJECT_PBX_FILE'"
