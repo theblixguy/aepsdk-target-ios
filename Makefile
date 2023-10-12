@@ -87,3 +87,7 @@ test-podspec:
 
 pod-lint:
 	(pod lib lint --allow-warnings --verbose --swift-version=5.1)
+
+# used to test update-versions.sh script locally
+test-update-version:
+	(sh ./Script/update-versions.sh -n Target -v 9.9.9 -d "AEPCore 9.9.3")
