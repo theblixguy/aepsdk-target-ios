@@ -57,6 +57,8 @@ class TargetFunctionalTestsBase: XCTestCase {
         ]
 
         cleanUserDefaults()
+        NamedCollectionDataStore.clear()
+
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
         target.previewManager = mockPreviewManager

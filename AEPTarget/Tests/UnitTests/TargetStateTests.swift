@@ -17,7 +17,7 @@ import XCTest
 
 class TargetStateTests: XCTestCase {
     override func setUpWithError() throws {
-        UserDefaults.clear()
+        NamedCollectionDataStore.clear()
         ServiceProvider.shared.namedKeyValueService.setAppGroup(nil)
     }
 

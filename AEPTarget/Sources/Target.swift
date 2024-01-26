@@ -1074,17 +1074,17 @@ public class Target: NSObject, Extension {
     /// - Parameters:
     ///     - mboxJson: `[String: Any]` target response dictionary
     /// - Returns: tuple containg `String` mbox content and `Dictionary` containing response tokens, if any.
-    private func extractMboxContentAndResponseTokens(mboxJson: [String: Any]) -> (content: String?, responseTokens: [String: String]?) {
+    private func extractMboxContentAndResponseTokens(mboxJson: [String: Any]) -> (content: String?, responseTokens: [String: Any]?) {
         guard let optionsArray = mboxJson[TargetConstants.TargetJson.OPTIONS] as? [[String: Any?]?] else {
             Log.debug(label: Target.LOG_TAG, "extractMboxContent - unable to extract mbox contents, options array is nil")
             return (nil, nil)
         }
 
         var contentBuilder = ""
-        var responseTokens: [String: String]?
+        var responseTokens: [String: Any]?
 
         for option in optionsArray {
-            responseTokens = option?[TargetConstants.TargetJson.Option.RESPONSE_TOKENS] as? [String: String]
+            responseTokens = option?[TargetConstants.TargetJson.Option.RESPONSE_TOKENS] as? [String: Any]
 
             guard let content = option?[TargetConstants.TargetJson.Option.CONTENT] else {
                 continue
@@ -1190,7 +1190,7 @@ public class Target: NSObject, Extension {
     ///     - analyticsPayload: dictionary containing analytics for target (a4t) payload.
     ///     - metricsAnalyticsPayload: dictionary containing a4t payload for click metric.
     /// - Returns: `Dictionary` containing Target payload or nil.
-    private func packageMboxResponsePayload(responseTokens: [String: String]?,
+    private func packageMboxResponsePayload(responseTokens: [String: Any]?,
                                             analyticsPayload: [String: String]?,
                                             metricsAnalyticsPayload: [String: String]?)
     -> [String: Any]? {
