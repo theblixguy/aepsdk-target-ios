@@ -254,10 +254,10 @@ class TargetFunctionalTests: TargetFunctionalTestsBase {
     // MARK: - Session testing
 
     func testIfSessionTimeOut_useNewSessionIdAndDefaultEdgeHostInTargetReqeust() {
-        cleanUserDefaults()
-        getUserDefaults().setValue(1_617_825_969, forKey: "Adobe.com.adobe.module.target.session.timestamp")
-        getUserDefaults().setValue("935CDD24-8FD7-4B30-8508-4BE40C3FC263", forKey: "Adobe.com.adobe.module.target.session.id")
-        getUserDefaults().setValue("mboxedge35.tt.omtrdc.net", forKey: "Adobe.com.adobe.module.target.edge.host")
+        NamedCollectionDataStore.clear()
+        getTargetDataStore().set(key: "session.timestamp", value: 1_617_825_969)
+        getTargetDataStore().set(key: "session.id", value: "935CDD24-8FD7-4B30-8508-4BE40C3FC263")
+        getTargetDataStore().set(key: "edge.host", value: "mboxedge35.tt.omtrdc.net")
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
         target.onRegistered()
@@ -297,8 +297,8 @@ class TargetFunctionalTests: TargetFunctionalTestsBase {
     }
 
     func testIfNotSessionTimeOut_useSameSessionIdAndNewEdgeHostInTargetReqeust() {
-        cleanUserDefaults()
-        getUserDefaults().setValue(Date().getUnixTimeInSeconds(), forKey: "Adobe.com.adobe.module.target.session.timestamp")
+        NamedCollectionDataStore.clear()
+        getTargetDataStore().set(key: "session.timestamp", value: Date().getUnixTimeInSeconds())
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
         target.onRegistered()
@@ -399,9 +399,9 @@ class TargetFunctionalTests: TargetFunctionalTestsBase {
     }
 
     func testSessionTimestampIsNotUpdatedWhenSendingRequestFails() {
-        cleanUserDefaults()
+        NamedCollectionDataStore.clear()
         let sessionTimestamp = Date().getUnixTimeInSeconds()
-        getUserDefaults().setValue(sessionTimestamp, forKey: "Adobe.com.adobe.module.target.session.timestamp")
+        getTargetDataStore().set(key: "session.timestamp", value: sessionTimestamp)
         mockRuntime = TestableExtensionRuntime()
         target = Target(runtime: mockRuntime)
         target.onRegistered()

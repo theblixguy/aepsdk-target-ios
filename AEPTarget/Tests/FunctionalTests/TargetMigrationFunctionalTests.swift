@@ -23,8 +23,9 @@ class TargetMigrationFunctionalTests: TargetFunctionalTestsBase {
     }
 
     func testTargetInitWithDataMigrationFromV5() {
-        let userDefaultsV5 = getUserDefaults()
         cleanUserDefaults()
+        NamedCollectionDataStore.clear()
+        let userDefaultsV5 = getUserDefaults()
 
         let timestamp = Date().getUnixTimeInSeconds()
         userDefaultsV5.set("edge.host.com", forKey: "Adobe.ADOBEMOBILE_TARGET.EDGE_HOST")
@@ -42,9 +43,11 @@ class TargetMigrationFunctionalTests: TargetFunctionalTestsBase {
     }
 
     func testTargetInitWithDataMigrationFromV4() {
+        cleanUserDefaults()
+        NamedCollectionDataStore.clear()
+        
         let userDefaultsV4 = getUserDefaults()
         let targetDataStore = getTargetDataStore()
-        cleanUserDefaults()
 
         userDefaultsV4.set("id_1", forKey: "ADBMOBILE_TARGET_TNT_ID")
         userDefaultsV4.set("id_2", forKey: "ADBMOBILE_TARGET_3RD_PARTY_ID")
