@@ -184,7 +184,7 @@ static func retrieveLocationContent(_ requestArray: [TargetRequest], with target
 
             // Read the data dictionary containing one or more of response tokens, analytics payload and click-tracking analytics payload, if available.
             if let data = data {
-                let responseTokens = data["responseTokens"] as? [String: String] ?? [:]
+                let responseTokens = data["responseTokens"] as? [String: Any] ?? [:]
 
                 let analyticsPayload = data["analytics.payload"] as? [String: String] ?? [:]
 

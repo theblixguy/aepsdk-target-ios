@@ -156,7 +156,7 @@ struct ContentView: View {
                 print("------")
                 print("Content: \(content ?? "")")
 
-                let responseTokens = data?["responseTokens"] as? [String: String] ?? [:]
+                let responseTokens = data?["responseTokens"] as? [String: Any] ?? [:]
                 print("Response tokens: \(responseTokens as AnyObject)")
 
                 let analyticsPayload = data?["analytics.payload"] as? [String: String] ?? [:]
@@ -169,7 +169,7 @@ struct ContentView: View {
                 print("------")
                 print("Content: \(content ?? "")")
 
-                let responseTokens = data?["responseTokens"] as? [String: String] ?? [:]
+                let responseTokens = data?["responseTokens"] as? [String: Any] ?? [:]
                 print("Response tokens: \(responseTokens as AnyObject)")
 
                 let analyticsPayload = data?["analytics.payload"] as? [String: String] ?? [:]

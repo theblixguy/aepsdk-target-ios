@@ -12,10 +12,20 @@
 import Foundation
 
 extension UserDefaults {
-    static func clear() {
-        for _ in 0 ... 5 {
-            for key in UserDefaults.standard.dictionaryRepresentation().keys {
-                UserDefaults.standard.removeObject(forKey: key)
+    static func clear(appGroup: String? = nil) {
+        if let appGroup = appGroup,
+           !appGroup.isEmpty,
+           let userDefaults = UserDefaults(suiteName: appGroup) {
+                for _ in 0 ... 5 {
+                    for key in userDefaults.dictionaryRepresentation().keys {
+                        userDefaults.removeObject(forKey: key)
+                    }
+                }
+        } else {
+            for _ in 0 ... 5 {
+                for key in UserDefaults.standard.dictionaryRepresentation().keys {
+                    UserDefaults.standard.removeObject(forKey: key)
+                }
             }
         }
     }

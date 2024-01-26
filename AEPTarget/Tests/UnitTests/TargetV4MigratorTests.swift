@@ -19,18 +19,11 @@ class TargetV4MigratorTests: XCTestCase {
     private let appGroup = "test_app_group"
 
     override func setUpWithError() throws {
-        if let userDefaults = UserDefaults(suiteName: appGroup) {
-            for _ in 0 ... 5 {
-                for key in userDefaults.dictionaryRepresentation().keys {
-                    userDefaults.removeObject(forKey: key)
-                }
-            }
-        }
-        for _ in 0 ... 5 {
-            for key in UserDefaults.standard.dictionaryRepresentation().keys {
-                UserDefaults.standard.removeObject(forKey: key)
-            }
-        }
+        UserDefaults.clear()
+        UserDefaults.clear(appGroup: appGroup)
+        
+        NamedCollectionDataStore.clear()
+        NamedCollectionDataStore.clear(appGroup: appGroup)
 
         ServiceProvider.shared.namedKeyValueService.setAppGroup(nil)
     }
