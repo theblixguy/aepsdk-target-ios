@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "AEPTarget"
-  s.version          = "4.0.3"
+  s.version          = "4.0.4"
   s.summary          = "Experience Platform Target extension for Adobe Experience Platform Mobile SDK. Written and maintained by Adobe."
   s.description      = <<-DESC
                         The Experience Platform Target extension provides APIs that allow use of the Target product in the Adobe Experience Platform SDK.
@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '11.0'
   s.swift_version = '5.1'
   s.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES' }
-  s.dependency 'AEPCore', ">= 4.0.0"
+  s.dependency 'AEPCore', '>= 4.0.0', '< 5.0.0'
 
   s.source_files          = 'AEPTarget/Sources/**/*.swift'
 
