@@ -2,7 +2,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@3.3.0
+  # codecov: codecov/codecov@3.3.0
   macos: circleci/macos@2
 
 workflows:
@@ -101,10 +101,10 @@ jobs:
 
       # Code coverage upload using Codecov
       # See options explanation here: https://docs.codecov.com/docs/codecov-uploader
-      - codecov/upload:
-          flags: aeptarget-ios-tests
-          upload_name: Coverage Report for AEPTarget iOS Tests
-          xtra_args: -c -v --xc --xp ./build/AEPTarget.xcresult
+      # - codecov/upload:
+      #     flags: aeptarget-ios-tests
+      #     upload_name: Coverage Report for AEPTarget iOS Tests
+      #     xtra_args: -c -v --xc --xp ./build/AEPTarget.xcresult
 
   test-spm-podspec-archive:  
     macos:
