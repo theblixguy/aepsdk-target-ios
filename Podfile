@@ -4,6 +4,9 @@ platform :ios, '12.0'
 # Comment the next line if you don't want to use dynamic frameworks
 use_frameworks!
 
+$dev_repo = 'https://github.com/adobe/aepsdk-core-ios.git'
+$dev_branch = 'staging'
+
 workspace 'AEPTarget'
 project 'AEPTarget.xcodeproj'
 
@@ -19,9 +22,9 @@ def lib_main
 end
 
 def lib_dev
-    pod 'AEPCore', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPServices', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPRulesEngine', :git => 'https://github.com/adobe/aepsdk-rulesengine-ios.git', :branch => 'dev-v5.0.0'
+    pod 'AEPCore', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPServices', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPRulesEngine', :git => 'https://github.com/adobe/aepsdk-rulesengine-ios.git', :branch => $dev_branch
 end
 
 def app_main
@@ -36,14 +39,14 @@ def app_main
 end
 
 def app_dev
-    pod 'AEPCore', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPServices', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPRulesEngine', :git => 'https://github.com/adobe/aepsdk-rulesengine-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPIdentity', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPLifecycle', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
-    pod 'AEPSignal', :git => 'https://github.com/adobe/aepsdk-core-ios.git', :branch => 'dev-v5.0.0'
+    pod 'AEPCore', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPServices', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPRulesEngine', :git => 'https://github.com/adobe/aepsdk-rulesengine-ios.git', :branch => $dev_branch
+    pod 'AEPIdentity', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPLifecycle', :git => $dev_repo, :branch => $dev_branch
+    pod 'AEPSignal', :git => $dev_repo, :branch => $dev_branch
     pod 'AEPAnalytics'
-#    pod 'AEPAssurance'
+    pod 'AEPAssurance', :git => 'https://github.com/adobe/aepsdk-assurance-ios.git', :branch => $dev_branch
 end
 
 # ==================
