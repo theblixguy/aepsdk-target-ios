@@ -3,14 +3,14 @@
 [![Cocoapods](https://img.shields.io/github/v/release/adobe/aepsdk-target-ios?label=CocoaPods&logo=apple&logoColor=white&color=orange&sort=semver)](https://cocoapods.org/pods/AEPTarget)
 [![SPM](https://img.shields.io/github/v/release/adobe/aepsdk-target-ios?label=SPM&logo=apple&logoColor=white&color=orange&sort=semver)](https://github.com/adobe/aepsdk-target-ios/releases)
 [![CircleCI](https://img.shields.io/circleci/project/github/adobe/aepsdk-target-ios/main.svg?logo=circleci&label=Build)](https://circleci.com/gh/adobe/workflows/aepsdk-target-ios)
-[![Code Coverage](https://img.shields.io/codecov/c/github/adobe/aepsdk-target-ios/main.svg?logo=codecov&label=Coverage)](https://codecov.io/gh/adobe/aepsdk-target-ios/branch/main)
+<!--[![Code Coverage](https://img.shields.io/codecov/c/github/adobe/aepsdk-target-ios/main.svg?logo=codecov&label=Coverage)](https://codecov.io/gh/adobe/aepsdk-target-ios/branch/main)-->
 
 ## About this project
 
 The `AEPTarget` helps test, personalize, and optimize mobile app experiences based on user behavior and mobile context. You can deliver interactions that engage and convert through iterative testing and rules-based and AI-powered personalization.  
 
 ## Requirements
-- Xcode 14.1 (or newer)
+- Xcode 15 (or newer)
 - Swift 5.1 (or newer)
 
 ## Installation
@@ -42,7 +42,7 @@ Alternatively, if your project has a `Package.swift` file, you can add AEPTarget
 
 ```
 dependencies: [
-    .package(url: "https://github.com/adobe/aepsdk-target-ios.git", .upToNextMajor(from: "4.0.0")),
+    .package(url: "https://github.com/adobe/aepsdk-target-ios.git", .upToNextMajor(from: "5.0.0")),
 ],
 targets: [
     .target(name: "YourTarget",

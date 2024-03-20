@@ -12,6 +12,7 @@
 
 import AEPServices
 import Foundation
+import XCTest
 
 class MockFullscreenMessage: FullscreenPresentable {
     var showCalled = false
@@ -26,14 +27,26 @@ class MockFullscreenMessage: FullscreenPresentable {
 }
 
 class MockFloatingButton: FloatingButtonPresentable {
+    enum Invocation {
+        case SHOW
+        case DISMISS
+    }
+    private var invocations: [Invocation] = []
+
     var showCalled = false
+    var showCalledCount = 0
     func show() {
         showCalled = true
+        showCalledCount += 1
+        invocations.append(.SHOW)
     }
 
     var dismissCalled = false
+    var dismissCalledCount = 0
     func dismiss() {
         dismissCalled = true
+        dismissCalledCount += 1
+        invocations.append(.DISMISS)
     }
 
     var setButtonImageCalled = false
@@ -44,6 +57,12 @@ class MockFloatingButton: FloatingButtonPresentable {
     var setInitialCalled = false
     func setInitial(position _: FloatingButtonPosition) {
         setInitialCalled = true
+    }
+    
+    func verify(expectedInvocations: [Invocation], file: StaticString = #file, line: UInt = #line) {
+        if invocations != expectedInvocations {
+            XCTFail("Expected \(expectedInvocations), but got \(invocations)", file: file, line: line)
+        }
     }
 }
 
