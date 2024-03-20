@@ -28,20 +28,16 @@ def lib_dev
 end
 
 def app_main
-    pod 'AEPCore'
-    pod 'AEPServices'
-    pod 'AEPRulesEngine'
+    lib_main    
     pod 'AEPIdentity'
     pod 'AEPLifecycle'
     pod 'AEPSignal'
-    pod 'AEPAnalytics'
-    pod 'AEPAssurance'
+    # pod 'AEPAnalytics'
+    # pod 'AEPAssurance'
 end
 
 def app_dev
-    pod 'AEPCore', :git => $dev_repo, :branch => $dev_branch
-    pod 'AEPServices', :git => $dev_repo, :branch => $dev_branch
-    pod 'AEPRulesEngine', :git => 'https://github.com/adobe/aepsdk-rulesengine-ios.git', :branch => $dev_branch
+    lib_dev    
     pod 'AEPIdentity', :git => $dev_repo, :branch => $dev_branch
     pod 'AEPLifecycle', :git => $dev_repo, :branch => $dev_branch
     pod 'AEPSignal', :git => $dev_repo, :branch => $dev_branch

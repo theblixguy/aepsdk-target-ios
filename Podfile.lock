@@ -1,27 +1,19 @@
 PODS:
-  - AEPAnalytics (4.0.1):
-    - AEPCore (< 5.0.0, >= 4.0.0)
-    - AEPServices (< 5.0.0, >= 4.0.0)
-  - AEPAssurance (4.1.2):
-    - AEPCore (< 5.0, >= 4.0.0)
-    - AEPServices (< 5.0, >= 4.0.0)
-  - AEPCore (4.2.3):
-    - AEPRulesEngine (< 5.0.0, >= 4.0.0)
-    - AEPServices (< 5.0.0, >= 4.2.3)
-  - AEPIdentity (4.2.3):
-    - AEPCore (< 5.0.0, >= 4.2.3)
-  - AEPLifecycle (4.2.3):
-    - AEPCore (< 5.0.0, >= 4.2.3)
-  - AEPRulesEngine (4.0.0)
-  - AEPServices (4.2.3)
-  - AEPSignal (4.2.3):
-    - AEPCore (< 5.0.0, >= 4.2.3)
+  - AEPCore (5.0.0):
+    - AEPRulesEngine (< 6.0.0, >= 5.0.0)
+    - AEPServices (< 6.0.0, >= 5.0.0)
+  - AEPIdentity (5.0.0):
+    - AEPCore (< 6.0.0, >= 5.0.0)
+  - AEPLifecycle (5.0.0):
+    - AEPCore (< 6.0.0, >= 5.0.0)
+  - AEPRulesEngine (5.0.0)
+  - AEPServices (5.0.0)
+  - AEPSignal (5.0.0):
+    - AEPCore (< 6.0.0, >= 5.0.0)
   - SwiftLint (0.52.0)
   - SwiftyJSON (5.0.1)
 
 DEPENDENCIES:
-  - AEPAnalytics
-  - AEPAssurance
   - AEPCore
   - AEPIdentity
   - AEPLifecycle
@@ -33,8 +25,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - AEPAnalytics
-    - AEPAssurance
     - AEPCore
     - AEPIdentity
     - AEPLifecycle
@@ -45,17 +35,15 @@ SPEC REPOS:
     - SwiftyJSON
 
 SPEC CHECKSUMS:
-  AEPAnalytics: f1c62439533f49130e7a9db86ba4290a422a999e
-  AEPAssurance: 91b030dc7edf0567c742367e5c466e50641e0503
-  AEPCore: 7ab5e149947a71d7486818bde393cddc513df271
-  AEPIdentity: 8b64c2cc896f1a8546b7f20d9fdbd4ba6079f21c
-  AEPLifecycle: b676303a42386aca38bea8e927f391e12cac43e3
-  AEPRulesEngine: 458450a34922823286ead045a0c2bd8c27e224c6
-  AEPServices: d870535b75682be9c440d3cdf2cbd0481e450aff
-  AEPSignal: a5afda383d82bd1ca72a896a53c203d7cf55012e
+  AEPCore: f1c3e9238bb12e7e1103f4407c341ebc65aeab5b
+  AEPIdentity: a65c1eba43a06f01b0dab191b27a53a81adada57
+  AEPLifecycle: d4e0e1e86d6225d87203875d67f56c48f7ab7f67
+  AEPRulesEngine: fe5800653a4bee07b1e41e61b4d5551f0dba557b
+  AEPServices: e42e5118128e81c0f797fdfb1dc9c4a714d644b8
+  AEPSignal: b146a3d4e5af51ff588f4f1ffbd40f1541325143
   SwiftLint: 13280e21cdda6786ad908dc6e416afe5acd1fcb7
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
 
-PODFILE CHECKSUM: eb7ee15096f9d10b95f282940b68371edf632134
+PODFILE CHECKSUM: 4f706c86009ea012050063084717c28cc394475c
 
 COCOAPODS: 1.14.3
