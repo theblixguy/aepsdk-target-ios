@@ -53,18 +53,18 @@ end
 # TARGET DEFINITIONS
 # ==================
 target 'AEPTarget' do
-  lib_dev
+  lib_main
 end
 
 target 'AEPTargetDemoApp' do
-  app_dev
+  app_main
 end
   
 target 'AEPTargetDemoObjCApp' do
-  app_dev
+  app_main
 end
 
 target 'AEPTargetTests' do
-  app_dev
+  app_main
   pod 'SwiftyJSON', '~> 5.0'
 end
