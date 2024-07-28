@@ -20,7 +20,7 @@ let package = Package(
   .library(name: "AEPTarget", targets: ["AEPTarget"]),
  ],
  dependencies: [
-  .package(url: "https://github.com/adobe/aepsdk-core-ios.git", .upToNextMajor(from: "5.0.0")),
+  .package(url: "https://github.com/theblixguy/aepsdk-core-ios.git", .branch("chore/vision-os")),
  ],
  targets: [
   .target(name: "AEPTarget",
